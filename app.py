@@ -9,7 +9,7 @@ api_key=config.DevelopmentConfig.OPENAI_KEY
 openai.api_key= api_key
 
 def page_not_found(e):
-  return render_template('404.html'), 404
+  return render_template('404.html',page="Chatbot project",**locals()), 404
 
 app = Flask(__name__)
 app.config.from_object(config.config['development'])
@@ -34,7 +34,7 @@ def init_rollbar():
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html',page="ChatGPT Project",**locals())
 
 @app.route('/chatbot.html', methods=['POST', 'GET'])
 def chatbot():

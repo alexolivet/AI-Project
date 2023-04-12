@@ -1,2 +1,2 @@
 # AI-Project
-creating a robot that could help me learn the fun way
+A minimal open-source implementation of the OpenAI GPT (Generative Pretrained Transformer) fully autonomous in a flask app. A simple Flask app to demonstrate how to generate text and images with OpenAI  api.
