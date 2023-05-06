@@ -5,8 +5,21 @@ from openai.error import RateLimitError,AuthenticationError,Timeout,APIError,API
 import os
 import rollbar
 import rollbar.contrib.flask
+import sqlite3
+import datetime
+import traceback
+import sys
 api_key=config.DevelopmentConfig.OPENAI_KEY
 openai.api_key= api_key
+
+
+#connect to db
+def get_db_connection():
+    conn = sqlite3.connect('./database/maestro.db')
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor() 
+    cur.execute("PRAGMA foreign_keys = ON;")
+    return conn
 
 def page_not_found(e):
   return render_template('404.html',page="Chatbot project",**locals()), 404
@@ -35,6 +48,13 @@ def init_rollbar():
 @app.route('/')
 def index():
     return render_template('index.html',page="ChatGPT Project",**locals())
+
+@app.route('/setup.html', methods=['POST', 'GET'])
+def setup():
+    if request.method == 'POST':
+        content = request.form['content']
+        save_system_instruction(content)
+    return render_template('setup.html',page="Setup ChatGPT",**locals())
 
 @app.route('/chatbot.html', methods=['POST', 'GET'])
 def chatbot():
@@ -77,6 +97,8 @@ def chatbot():
             content = "Your API key or token does not have the required scope or role to perform the requested action."
         except ServiceUnavailableError :
             content = "Issue on our servers."
+        finally:
+            save_response_token(count_tokens)
         
 
         return jsonify(content=content,count_tokens=count_tokens), 200
@@ -130,6 +152,47 @@ def chatbotimage():
         return jsonify(content=content), 200
    
    return render_template('chatbotimage.html', page="Chatbot project",**locals())
+
+
+def save_response_token(token_val):
+    try:
+       create_dt=datetime.datetime.now()
+       conn = get_db_connection() 
+       cur = conn.cursor()  
+       cur.execute("INSERT into value_token (token_val,create_dt) values (?,?)",(token_val,create_dt))  
+       conn.commit()  
+    except sqlite3.Error as er:
+        print('SQLite error: %s' % (' '.join(er.args)))
+        print("Exception class is: ", er.__class__)
+        print('SQLite traceback: ')
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        print(traceback.format_exception(exc_type, exc_value, exc_tb))
+    except:  
+        conn.rollback()  
+        print("db error")
+    finally:  
+        conn.close() 
+        print("closed!!!")
+
+def save_system_instruction(content):
+    try:
+       create_dt=datetime.datetime.now()
+       conn = get_db_connection() 
+       cur = conn.cursor()  
+       cur.execute("INSERT into system_instruction (content,create_dt) values (?,?)",(content,create_dt))  
+       conn.commit()  
+    except sqlite3.Error as er:
+        print('SQLite error: %s' % (' '.join(er.args)))
+        print("Exception class is: ", er.__class__)
+        print('SQLite traceback: ')
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        print(traceback.format_exception(exc_type, exc_value, exc_tb))
+    except:  
+        conn.rollback()  
+        print("db error")
+    finally:  
+        conn.close() 
+        print("closed!!!")
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port='8888',debug=True)

@@ -1,0 +1,49 @@
+{% extends "base.html" %} {% block title %}{{page}}{% endblock %} {% block
+content %}
+<div class="container">
+  <br />
+  <br />
+  <h1 class="mt-1">Setup ChatGPT role and content</h1>
+  <p class="lead">Each message has two properties: role and content.</p>
+  <form class="row row-cols-lg-auto g-1 align-items-center" method="post">
+    <div class="mb-3">
+      <label for="exampleInputRole1" class="form-label">Role</label>
+      <select
+        id="role"
+        name="role"
+        class="form-select form-select-sm"
+        aria-label=".form-select-sm example"
+      >
+        <option selected>Open this select menu</option>
+        <option value="1">system</option>
+        <option value="2">user</option>
+        <option value="3">assistant</option>
+      </select>
+      <div id="roleHelp" class="form-text">
+        The 'role' can take one of three values: either 'system', 'user' or the
+        'assistant'.
+      </div>
+    </div>
+    <div class="mb-3">
+      <label for="exampleInputPassword1" class="form-label">Content</label>
+      <div class="input-group mb-3">
+        <span class="input-group-text">system instructions</span>
+        <textarea
+          name="content"
+          id="content"
+          class="form-control"
+          aria-label="With textarea"
+        ></textarea>
+      </div>
+      <div id="roleHelp" class="form-text">
+        The 'content' contains the text of the message from the role.The system.
+        instruction can give high level instructions for the conversation.
+      </div>
+      <br />
+      <button type="submit" class="btn btn-primary" name="addContent">
+        Submit
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}
