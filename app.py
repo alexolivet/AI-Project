@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, request, got_request_exception
+from flask import Flask, render_template, jsonify, request, got_request_exception, session
 import config
 import openai
 from openai.error import RateLimitError,AuthenticationError,Timeout,APIError,APIConnectionError,InvalidRequestError,ServiceUnavailableError
@@ -51,23 +51,73 @@ def index():
 
 @app.route('/setup.html', methods=['POST', 'GET'])
 def setup():
+    rows=show_system_instruction()
     if request.method == 'POST':
+        session["chat_content"] = request.form.get("content_list")
+    return render_template('setup.html',page="Setup ChatGPT",**locals())
+
+
+@app.route('/innstruction.html', methods=['POST', 'GET'])
+def instruction():
+   rows=show_system_instruction()
+   conn = get_db_connection()
+   if "add_instruction" in request.form:
         content = request.form['content']
         save_system_instruction(content)
-    return render_template('setup.html',page="Setup ChatGPT",**locals())
+        rows=show_system_instruction()
+   if "update-instruction" in request.form:
+        try:  
+            si_id=  str.strip(request.form["instruction_id"])  
+            si_content = str.strip(request.form["instruction_content"])      
+            with conn as con:  
+                cur = con.cursor()  
+                cur.execute('UPDATE system_instruction SET content = ? WHERE id = ?', [si_content,si_id])
+                con.commit()
+                rows = show_system_instruction()
+                msg = "Successfully Changed"  
+        except:  
+            conn.rollback()  
+            msg = "Unsuccessfull. Please retry later"  
+        finally:  
+            conn.close()
+            return render_template('instruction.html',page="list Instruction",**locals())
+              
+   if "delete-instruction" in request.form:
+        try:  
+            si_id =  str.strip(request.form["instruction_id"])         
+            with conn as con:  
+                cur = con.cursor()  
+                cur.execute('DELETE from system_instruction WHERE id = ?', [si_id])
+                con.commit()
+                rows = show_system_instruction()
+                msg = "Successfully Changed"    
+        except:  
+            conn.rollback()  
+            msg = "Unsuccessfull. Please retry later."  
+        finally:  
+            conn.close()
+            return render_template('instruction.html',page="list Instruction",**locals())
+
+   return render_template('instruction.html',page="list Instruction",**locals())
 
 @app.route('/chatbot.html', methods=['POST', 'GET'])
 def chatbot():
+#    session_check=session["chat_content"]
+   rows=show_system_instruction()
    if request.method == 'POST':
         user_input = request.form['prompt']
         messages = []
         #sets the role of chatgpt
         #system: facts, basic and important context (no behaviour instructions here): example: At this place apples are purple.
-        messages.append({"role": "system", "content": "You are ChatGPT, a large language model trained by OpenAI. Answer as concisely as possible.\nKnowledge cutoff: 2021-09-01\nCurrent date: 2023-04-10"})
+        if not session.get("chat_content"):
+         messages.append({"role": "system", "content": "You are ChatGPT, a large language model trained by OpenAI. Answer as concisely as possible.\nKnowledge cutoff: 2021-09-01\nCurrent date: 2023-04-10"})
+        else:
+         messages.append({"role": "system", "content": session.get("chat_content")})
         question = {}
         question['role'] = 'user'
         question['content'] = user_input
         messages.append(question)
+        print(messages)
         try:
             response = openai.ChatCompletion.create(
                 # model="gpt-4",
@@ -193,6 +243,16 @@ def save_system_instruction(content):
     finally:  
         conn.close() 
         print("closed!!!")
+
+def show_system_instruction():
+    conn = get_db_connection()
+    conn.row_factory = sqlite3.Row  
+    cur = conn.cursor()  
+    cur.execute("select * from system_instruction")  
+    rows = cur.fetchall() 
+    conn.close()
+    return rows
+  
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port='8888',debug=True)

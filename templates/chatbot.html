@@ -1,34 +1,25 @@
 {% extends "base.html" %} {% block title %}{{page}}{% endblock %} {% block
 content %}
 <div class="container">
-  <br />
-  <br />
-  <h1 class="mt-1">Get Started with ChatGPT API from OpenAI</h1>
-  <p class="lead">Ask any question and wait for the response</p>
-  <!-- ajax response goes here -->
-  <div id="list-group" class="list-group w-auto"></div>
-  <div class="input-group mb-3">
-    <input type="text" class="form-control" id="chat-input" name="chat-input" />
-    <div class="input-group-append">
-      <button id="gpt-button" class="btn btn-primary">Ask ChatGPT</button>
+    <br />
+    <br />
+    <h1 class="mt-1">Chatbot</h1>
+    <p class="lead">Start a conversation topic.</p>
+    <!-- ajax response goes here -->
+    <div id="list-group" class="list-group w-auto"></div>
+    <div class="input-group mb-3">
+        <input type="text" class="form-control" id="chat-input" name="chat-input" />
+        <div class="input-group-append">
+            <button id="gpt-button" class="btn btn-primary">Ask ChatGPT</button>
+        </div>
     </div>
-  </div>
 </div>
-<script
-  src="https://code.jquery.com/jquery-3.6.3.min.js"
-  integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU="
-  crossorigin="anonymous"
-></script>
-<script
-  src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
-  integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN"
-  crossorigin="anonymous"
-></script>
+<script src="https://code.jquery.com/jquery-3.6.3.min.js" integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
 <script>
-  $("#gpt-button").click(function () {
-    var question = $("#chat-input").val();
-    let html_data = "";
-    html_data += `
+    $("#gpt-button").click(function() {
+        var question = $("#chat-input").val();
+        let html_data = "";
+        html_data += `
     <a href="#" class="list-group-item list-group-item-action d-flex gap-3 py-3">
       <img src="{{ url_for('static', filename='images/favicon.png') }}" alt="twbs" width="32" height="32" class="rounded-circle flex-shrink-0">
       <div class="d-flex gap-2 w-100 justify-content-between">
@@ -38,15 +29,17 @@ content %}
       </div>
     </a>
     `;
-    $("#chat-input").val("");
-    $("#list-group").append(html_data);
-    $.ajax({
-      type: "POST",
-      url: "{{ url_for('chatbot') }}",
-      data: { prompt: question },
-      success: function (data) {
-        let gpt_data = "";
-        gpt_data += `
+        $("#chat-input").val("");
+        $("#list-group").append(html_data);
+        $.ajax({
+            type: "POST",
+            url: "{{ url_for('chatbot') }}",
+            data: {
+                prompt: question
+            },
+            success: function(data) {
+                let gpt_data = "";
+                gpt_data += `
     <a href="#" class="list-group-item list-group-item-action d-flex gap-3 py-3">
        <div class="d-flex gap-2 w-100 justify-content-between">
         <p class="mb-0 opacity-75 "><br /><img src="https://digital-practice.ams3.cdn.digitaloceanspaces.com/static%2Fapp%2Fimg%2Fopenai-logo.png" alt="twbs" width="32" height="32" class="rounded-circle flex-shrink-0"> ${data.content}</p>
@@ -58,36 +51,36 @@ content %}
     <textarea class="js-copytextarea" readonly="readonly">${data.content}</textarea>
     </a>
     `;
-        $("#list-group").append(gpt_data);
-        // Get all the elements that match the selector as arrays
-        var copyTextareaBtn = Array.prototype.slice.call(
-          document.querySelectorAll(".js-textareacopybtn")
-        );
-        console.log(copyTextareaBtn);
-        var copyTextarea = Array.prototype.slice.call(
-          document.querySelectorAll(".js-copytextarea")
-        );
-        console.log(copyTextarea);
-        // Loop through the button array and set up event handlers for each element
-        copyTextareaBtn.forEach(function (btn, idx) {
-          btn.addEventListener("click", function () {
-            // Get the textarea who's index matches the index of the button
-            copyTextarea[idx].select();
+                $("#list-group").append(gpt_data);
+                // Get all the elements that match the selector as arrays
+                var copyTextareaBtn = Array.prototype.slice.call(
+                    document.querySelectorAll(".js-textareacopybtn")
+                );
+                console.log(copyTextareaBtn);
+                var copyTextarea = Array.prototype.slice.call(
+                    document.querySelectorAll(".js-copytextarea")
+                );
+                console.log(copyTextarea);
+                // Loop through the button array and set up event handlers for each element
+                copyTextareaBtn.forEach(function(btn, idx) {
+                    btn.addEventListener("click", function() {
+                        // Get the textarea who's index matches the index of the button
+                        copyTextarea[idx].select();
 
-            try {
-              var msg = document.execCommand("copy")
-                ? "successful"
-                : "unsuccessful";
-              console.log("Copying text command was " + msg);
-            } catch (err) {
-              console.log("Whoops, unable to copy");
-            }
-          });
-        });
-      },
-      error: function (data) {
-        let gpt_data = "";
-        gpt_data += `
+                        try {
+                            var msg = document.execCommand("copy") ?
+                                "successful" :
+                                "unsuccessful";
+                            console.log("Copying text command was " + msg);
+                        } catch (err) {
+                            console.log("Whoops, unable to copy");
+                        }
+                    });
+                });
+            },
+            error: function(data) {
+                let gpt_data = "";
+                gpt_data += `
     <a href="#" class="list-group-item list-group-item-action d-flex gap-3 py-3">
       <img src="https://digital-practice.ams3.cdn.digitaloceanspaces.com/static%2Fapp%2Fimg%2Fopenai-logo.png" alt="twbs" width="32" height="32" class="rounded-circle flex-shrink-0">
        <div class="d-flex gap-2 w-100 justify-content-between">
@@ -95,9 +88,9 @@ content %}
     </div>
     </a>
     `;
-        $("#list-group").append(gpt_data);
-      },
+                $("#list-group").append(gpt_data);
+            },
+        });
     });
-  });
 </script>
 {% endblock %}

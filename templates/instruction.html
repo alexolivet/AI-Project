@@ -1,0 +1,51 @@
+{% extends "base.html" %} {% block title %}{{page}}{% endblock %} {% block
+    content %}
+<div class="container">
+    <br />
+    <br />
+    <h1 class="mt-1">Instructions list</h1>
+    <p class="lead">Update instruction so to make chatgpt return better responses.</p>
+    {% if rows %}
+    <br>
+    <div class="mb-3">
+        <form method="POST" action="{{ url_for('instruction') }}" style="display: inline">
+            <label for="exampleInputPassword1" class="form-label">Content</label>
+            <div class="input-group mb-3">
+                <span class="input-group-text">system instructions</span>
+                <textarea name="content" id="content" class="form-control" aria-label="With textarea"></textarea>
+            </div>
+            <div id="roleHelp" class="form-text">
+                Add new content to improve responses. </div>
+            <br />
+            <input type="submit" class="btn btn-primary" name="add_instruction" value="submit">
+        </form>
+
+    </div>
+    <div id="editableTable" class="table-responsive-xl">
+
+        <table class="table table-striped">
+            <thead style="text-align:center" scope="col" class="thead-dark">
+                <th style="text-align:center" scope="col">System Instruction</th>
+
+            </thead>
+            {% for row in rows %}
+            <tr>
+                <td>
+                    <form method="POST" action="{{ url_for('instruction') }}" style="display: inline">
+                        <input type="hidden" value="{{row["id"]}}" name="instruction_id">
+                        <input type="text" class="form-control" value="{{row["content"]}}" name="instruction_content">
+                        <br>
+                        <input type="submit" id="update-instruction" name="update-instruction" value="Update">
+                    </form>
+                    <form method="POST" action="{{ url_for('instruction') }}" style="display: inline">
+                        <input type="hidden" value="{{row["id"]}}" name="instruction_id">
+                        <input type="submit" id="delete-instruction" name="delete-instruction" value="Delete">
+                    </form>
+                </td>
+            </tr>
+
+            {% endfor %}
+        </table>
+    </div>
+    {% endif %}
+    {% endblock %}
