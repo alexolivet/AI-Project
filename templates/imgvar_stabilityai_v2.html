@@ -1,0 +1,233 @@
+{% extends "base.html" %} {% block title %}{{page}}{% endblock %} {% block
+content %}
+<!-- START MAIN CONTAINER -->
+<div class="container">
+  <div class="row">
+    <!-- START SIDENAV -->
+    <div class="side-nav col-lg-2 col-md-12">
+      <!-- START NEW CHAT BUTTON -->
+      <div class="row p-2">
+        <div class="chat-btn d-flex align-items-center">
+          <button
+            class="btn collapseAll"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#collapseExample"
+            aria-expanded="false"
+            aria-controls="collapseExample"
+          >
+          {{ page }}
+          </button>
+        </div>
+      </div>
+      <!-- START MODELS -->
+      <div class="row p-2">
+        <label for="model_stability_ai" class="form-label">Images</label>
+        <div class="pics">
+          <div class="thumbs">
+            {% if image_path %} {% for path in image_path%}
+            <div class="preview">
+              <a href="#" class="selected" data-full="{{path}}" data-title="">
+                <img src="{{path}}" />
+              </a>
+            </div>
+            {% endfor %} {% endif %}
+          </div>
+        </div>
+      </div>
+      <!-- START TEMPERATURE -->
+      <!-- START MAXIMUM LENGTH -->
+      <!-- START SEED -->
+      <!-- START TOP P -->
+      <!-- START FREQUENCY PENALTY -->
+      <!-- START PRESENCE PENALTY -->
+      <br />
+      <div class="row p-2">
+        <!-- START SETTINGS -->
+        <!-- <ul class="list-unstyled">
+          <li class="nav-item">
+            <button
+              type="submit"
+              id="modelEditStabilityAi"
+              name="modelEditStabilityAi"
+              class="btn btn-primary"
+            >
+              Change Model
+            </button>
+          </li>
+          <li class="nav-item">
+            <a
+              class="nav-link collapseAll"
+              data-bs-toggle="collapse"
+              href="#accountCredit"
+              role="button"
+              aria-expanded="false"
+              aria-controls="collapseExample"
+            >
+              <i class="bi bi-wrench"></i> Account & Credit
+            </a>
+          </li>
+        </ul> -->
+      </div>
+    </div>
+
+    <!-- START CONTENT -->
+    <div class="p-0 pt-0 col-lg-10 overflow-hidden">
+      <div class="chat-content-area-image">
+        <!-- START USER CHAT -->
+        <div class="row user-chat-box">
+          <div class="chat-txt">
+            <div class="row align-items-start">
+              <div class="col">
+                {% if image_path %} {% for path in image_path[0:1] %}
+                <a href="{{path}}" class="full" title="">
+                  <!-- first image is viewable to start -->
+                  <img src="{{path}}" id="choice" />
+                </a>
+                {% endfor %} {% endif %}
+              </div>
+              <div class="col">
+                <!-- <input
+                  type="text"
+                  id="text_promt"
+                  placeholder="Create an image variation that enhances the given image"
+                  class="form-control"
+                /> -->
+
+                <select
+                  class="form-select mb-3"
+                  id="style_preset"
+                  aria-label="select example"
+                >
+                  <option value="" selected>Style Preset -Optional-</option>
+                  <option value="3d-model"># 3d-model</option>
+                  <option value="analog-film"># analog-film</option>
+                  <option value="anime"># anime</option>
+                  <option value="cinematic"># cinematic</option>
+                  <option value="comic-book"># comic-book</option>
+                  <option value="digital-art"># digital-art</option>
+                  <option value="enhance"># enhance</option>
+                  <option value="fantasy-art"># fantasy-art</option>
+                  <option value="isometric"># isometric</option>
+                  <option value="line-art"># line-art</option>
+                  <option value="low-poly"># low-poly</option>
+                  <option value="modeling-compound"># modeling-compound</option>
+                  <option value="neon-punk"># neon-punk</option>
+                  <option value="origami"># origami</option>
+                  <option value="photographic"># photographic</option>
+                  <option value="pixel-art"># pixel-art</option>
+                  <option value="tile-texture"># tile-texture</option>
+                </select>
+                <p class="form-label">image_strength <sup>optional</sup></p>
+                <input
+                  type="range"
+                  id="image_strength"
+                  class="form-range w-100"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value="0.45"
+                  oninput="this.nextElementSibling.value = this.value"
+                />
+                <output>0.45</output><br /><br />
+                <p class="form-label">Steps <sup>optional</sup></p>
+                <input
+                  type="range"
+                  id="steps"
+                  class="form-range w-100"
+                  min="10"
+                  max="50"
+                  step="1"
+                  value="30"
+                  oninput="this.nextElementSibling.value = this.value"
+                />
+                <output>30</output><br /><br />
+                <button
+                  id="gpt-button"
+                  type="submit"
+                  class="btn btn-primary btn-sm"
+                >
+                  Get Image Variation
+                </button>
+              </div>
+              <div class="col"><div id="list-group"></div></div>
+            </div>
+          </div>
+        </div>
+        <!-- START GPT CHAT -->
+      </div>
+      <!-- START CHAT INPUTS -->
+    </div>
+  </div>
+</div>
+<!-- START EXTERNAL JS RESOURCES -->
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+<script>
+  $(document).ready(function () {
+    $(".preview a").on("click", function () {
+      $(".selected").removeClass("selected");
+      $(this).addClass("selected");
+      var picture = $(this).data();
+
+      event.preventDefault(); //prevents page from reloading every time you click a thumbnail
+
+      $(".full img")
+        .fadeOut(100, function () {
+          $(".full img").attr("src", picture.full);
+          $(".full").attr("href", picture.full);
+          $(".full").attr("title", picture.title);
+          $("#list-group").empty();
+        })
+        .fadeIn();
+    }); // end on click
+  }); //end doc ready
+</script>
+<script>
+  $("#gpt-button").click(function () {
+    $("#list-group").empty();
+    var path_to_feed = $("#choice").attr("src");
+    var style_preset = $("#style_preset").val();
+    var image_strength = $("#image_strength").val();
+    var steps = $("#steps").val();
+    console.log("path", path_to_feed);
+    $.ajax({
+      type: "POST",
+      url: "{{ url_for('imgvar_stabilityai_v2') }}",
+      data: {
+        prompt: path_to_feed,
+        style_preset: style_preset,
+        image_strength: image_strength,
+        steps: steps,
+      },
+      success: function (data) {
+        console.log("succcess");
+        console.log(data.content);
+        if (data.content.match(/\.(jpg|jpeg|gif|png)$/) != null) {
+          let gpt_data = "";
+          gpt_data += `
+          <a href="static/out/${data.content}" class="full" title="">
+                <!-- first image is viewable to start -->
+                <img src="static/out/${data.content}" />
+              </a>
+          `;
+          $("#list-group").append(gpt_data);
+        } else {
+          let gpt_data = "";
+          gpt_data += `
+        <p>${data.content}</p>
+          `;
+          $("#list-group").append(gpt_data);
+        }
+      },
+      error: function (data) {
+        console.log("failed");
+        let gpt_data = "";
+        gpt_data += `
+        <p>${data.content}</p>
+          `;
+      },
+    });
+  });
+</script>
+
+{% endblock %}

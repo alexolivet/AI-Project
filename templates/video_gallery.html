@@ -1,0 +1,174 @@
+{% extends "base.html" %} {% block title %}{{page}}{% endblock %} {% block
+content %}
+<!-- START MAIN CONTAINER -->
+<div class="container">
+  <div class="row">
+    <!-- START SIDENAV -->
+    <div class="side-nav col-lg-2 col-md-12">
+      <!-- START NEW CHAT BUTTON -->
+      <div class="row p-2">
+        <div class="chat-btn d-flex align-items-center">
+          <button
+            class="btn collapseAll"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#collapseExample"
+            aria-expanded="false"
+            aria-controls="collapseExample"
+          >
+          {{ page }}
+          </button>
+        </div>
+      </div>
+      <!-- START MODELS -->
+      <div class="row p-2">
+        <label for="model_stability_ai" class="form-label">Video</label>
+        <div class="pics">
+          <div class="thumbs">
+            {% if video_path %} {% for path in video_path%}
+            <div class="preview">
+              <a href="#" class="selected" data-full="{{path}}" data-title="">
+                <video
+                  class="lazy-video embed-responsive-item"
+                  preload="metadata"
+                  src=""
+                >
+                  <source data-src="{{path}}" type="video/mp4" />
+                </video>
+              </a>
+            </div>
+            {% endfor %} {% endif %}
+          </div>
+        </div>
+      </div>
+      <!-- START TEMPERATURE -->
+      <!-- START MAXIMUM LENGTH -->
+      <!-- START SEED -->
+      <!-- START TOP P -->
+      <!-- START FREQUENCY PENALTY -->
+      <!-- START PRESENCE PENALTY -->
+      <br />
+      <div class="row p-2">
+        <!-- START SETTINGS -->
+        <!-- <ul class="list-unstyled">
+                  <li class="nav-item">
+                    <button
+                      type="submit"
+                      id="modelEditStabilityAi"
+                      name="modelEditStabilityAi"
+                      class="btn btn-primary"
+                    >
+                      Change Model
+                    </button>
+                  </li>
+                  <li class="nav-item">
+                    <a
+                      class="nav-link collapseAll"
+                      data-bs-toggle="collapse"
+                      href="#accountCredit"
+                      role="button"
+                      aria-expanded="false"
+                      aria-controls="collapseExample"
+                    >
+                      <i class="bi bi-wrench"></i> Account & Credit
+                    </a>
+                  </li>
+                </ul> -->
+      </div>
+    </div>
+
+    <!-- START CONTENT -->
+    <div class="p-0 pt-0 col-lg-10 overflow-hidden">
+      <div class="chat-content-area-image">
+        <!-- START USER CHAT -->
+        <div class="row user-chat-box">
+          <div class="chat-txt">
+            <div class="row align-items-start">
+              <div class="col">
+                {% if video_path %} {% for path in video_path[0:1] %}
+                <a href="{{path}}" class="full" title="">
+                  <!-- first image is viewable to start -->
+                  <video
+                    autoplay
+                    loop
+                    class="embed-responsive-item"
+                    preload="metadata"
+                  >
+                    <source src="{{path}}" type="video/mp4" />
+                  </video>
+                </a>
+                {% endfor %}{% endif %}
+              </div>
+              <div class="col">
+                <!-- <input
+                  type="text"
+                  id="text_promt"
+                  placeholder="Create an image variation that enhances the given image"
+                  class="form-control"
+                /> -->
+              </div>
+              <div class="col">
+                <div id="list-group"></div>
+                <div
+                  class="embed-responsive embed-responsive-1by1"
+                  id="list-video"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- START GPT CHAT -->
+      </div>
+      <!-- START CHAT INPUTS -->
+    </div>
+  </div>
+</div>
+<!-- START EXTERNAL JS RESOURCES -->
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+<script>
+  $(document).ready(function () {
+    $(".preview a").on("click", function () {
+      $(".selected").removeClass("selected");
+      $(this).addClass("selected");
+      var picture = $(this).data();
+
+      event.preventDefault(); //prevents page from reloading every time you click a thumbnail
+
+      $(".full video")
+        .fadeOut(100, function () {
+          $(".full video").attr("src", picture.full);
+          $(".full").attr("href", picture.full);
+          $(".full").attr("title", picture.title);
+          $("#list-group").empty();
+        })
+        .fadeIn();
+    }); // end on click
+  }); //end doc ready
+</script>
+<script>
+  const lazyvideo = document.querySelectorAll(".lazy-video");
+  observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.intersectionRatio > 0) {
+        console.log("video in the view");
+        if (
+          entry.target.querySelector("source").getAttribute("data-src") !== null
+        ) {
+          const source = entry.target
+            .querySelector("source")
+            .getAttribute("data-src");
+          entry.target.setAttribute("src", source);
+        }
+        observer.unobserve(entry.target);
+      } else {
+        console.log("video out of view");
+      }
+    });
+  });
+
+  lazyvideo.forEach((video) => {
+    observer.observe(video);
+  });
+</script>
+
+{% endblock %}

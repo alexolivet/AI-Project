@@ -1,12 +1,109 @@
 {% extends "base.html" %} {% block title %}{{page}}{% endblock %} {% block
 content %}
 <div class="container">
-    <br />
-    <br />
-    <h1 class="mt-1">AI Project</h1>
-    <p class="lead">
-        Created a simple chatbot app with flask and python. Trying to intergrate the AI logic and Linux. Runniung flask server on a raspberry pi 4.
-    </p>
-    <ul>
+  <div class="row justify-content-center">
+    <div class="col-md-9">
+      <div
+        class="card text-center justify-content-center shaodw-lg card-1 border-0 bg-white px-sm-2"
+      >
+        <div class="card-body show">
+          <div class="row">
+            <div class="col">
+              <h5><b>Chatbot experiment</b></h5>
+              <p>
+                Current bot Setup. Click
+                <a
+                  href="{{url_for('setup_v2') }}"
+                  class="link-body-emphasis link-offset-2 link-underline-opacity-25 link-underline-opacity-75-hover"
+                  >here</a
+                >
+                to setup OpenAi engine. Click
+                <a
+                  href="{{url_for('setup_stabilityaiv2') }}"
+                  class="link-body-emphasis link-offset-2 link-underline-opacity-25 link-underline-opacity-75-hover"
+                  >here</a
+                >
+                to setup StabilityAi engine
+              </p>
+            </div>
+          </div>
+          <div
+            class="radio-group row justify-content-between px-3 text-center a"
+          >
+            <div
+              class="col-auto mr-sm-2 mx-1 card-block py-0 text-center radio selected"
+            >
+              <div class="flex-row">
+                <div class="col">
+                  <div class="pic">
+                    <p><span class="badge bg-primary">Current Model</span></p>
+                    <br />
+                    <p
+                      data-toggle=" tooltip"
+                      data-placement="top"
+                      title="{{ session.chat_model}}"
+                    >
+                      {% if session.chat_model %} {{ session.chat_model }} {%
+                      else %} None {% endif %}
+                    </p>
+                  </div>
+                  <hr />
+                  <div class="pic">
+                    <p>
+                      <span class="badge bg-primary"
+                        >Model for Stability AI</span
+                      >
+                    </p>
+                    <br />
+                    <p
+                      data-toggle=" tooltip"
+                      data-placement="top"
+                      title="{{ session.chat_model_stability_ai}}"
+                    >
+                      {% if session.chat_model_stability_ai %} {{
+                      session.chat_model_stability_ai }} {% else %} None {%
+                      endif %}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="col-auto ml-sm-2 mx-1 card-block py-0 text-center radio"
+            >
+              <div class="flex-row">
+                <div class="col">
+                  <div class="pic">
+                    <p>
+                      <span class="badge bg-secondary">Content Prompt</span>
+                    </p>
+                    <p
+                      data-toggle=" tooltip"
+                      data-placement="top"
+                      title="{{ session.chat_content }}"
+                      class="d-inline-block text-truncate"
+                      style="max-width: 150px"
+                    >
+                      {% if session.chat_content %} {{ session.chat_content }}
+                      {% else %} None {% endif %}
+                    </p>
+                  </div>
+                  <hr />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row justify-content-center">
+            <div class="col">
+              <p class="text-muted">
+                This bot is a RESTful API that provides a simple interface to
+                interact with OpenAI's GPT language models.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

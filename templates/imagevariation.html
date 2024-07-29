@@ -3,16 +3,35 @@ content %}
 <div class="container">
   <br />
   <br />
-  <h1 class="mt-1">Images Bot</h1>
-  <p class="lead">Let's try some AI image generation with dall-e-3</p>
-  <!-- ajax response goes here -->
-  <div id="list-group" class="list-group w-auto"></div>
-  <div class="input-group mb-3">
-    <input type="text" class="form-control" id="chat-input" />
+  <h1 class="mt-1">Image Variations with dall-e-2</h1>
+  <p class="lead">
+    The image variations endpoint allows you to generate a variation of a given
+    image.
+  </p>
+  <div class="mb-3">
+    <!-- <label for="exampleInputRole1" class="form-label">Image Variation</label> -->
+    <select
+      required
+      id="id_select2_example"
+      name="image_path"
+      class="form-select form-select-sm"
+      aria-label=".form-select-sm example"
+    >
+      <option value="">Select</option>
+      {% for path in image_path%}
+      <option data-img_src="{{path}}" class="img-thumbnail" value="{{path}}">
+        {{path}}
+      </option>
+      {% endfor %}
+    </select>
     <div class="input-group-append">
-      <button id="gpt-button" class="btn btn-primary">Ask ChatGPT</button>
+      <button id="gpt-button" type="submit" class="btn btn-primary">
+        Ask ChatGPT
+      </button>
     </div>
   </div>
+  <!-- ajax response goes here -->
+  <div id="list-group" class="list-group w-auto"></div>
 </div>
 <script
   src="https://code.jquery.com/jquery-3.6.3.min.js"
@@ -21,30 +40,32 @@ content %}
 ></script>
 <script>
   $("#gpt-button").click(function () {
-    var question = $("#chat-input").val();
+    var path_to_feed = $("#id_select2_example").val();
     let html_data = "";
     html_data += `
     <a href="#" class="list-group-item list-group-item-action d-flex gap-3 py-3">
       <img src="{{ url_for('static', filename='images/favicon.png') }}" alt="twbs" width="32" height="32" class="rounded-circle flex-shrink-0">
       <div class="d-flex gap-2 w-100 justify-content-between">
         <div>
-          <p class="mb-0 opacity-75">${question}</p>
+          <p class="mb-0 opacity-75"> <img src="${path_to_feed}" class="img-thumbnail" class="img-thumbnail" alt="{{path}}" style="width: 10%; height: 10%"></p>
         </div>
       </div>
     </a>
     `;
-    $("#chat-input").val("");
+    // $("#chat-input").val("");
     $("#list-group").append(html_data);
     $.ajax({
       type: "POST",
-      url: "{{ url_for('chatbotimage') }}",
+      url: "{{ url_for('imagevariation') }}",
       data: {
-        prompt: question,
+        prompt: path_to_feed,
       },
       success: function (data) {
+        console.log("succcess");
+        console.log(data.content);
         let gpt_data = "";
         gpt_data += `
-    <a href="#" class="list-group-item list-group-item-action d-flex gap-3 py-3">
+    <a href="${data.content}" class="list-group-item list-group-item-action d-flex gap-3 py-3">
       <img src="https://digital-practice.ams3.cdn.digitaloceanspaces.com/static%2Fapp%2Fimg%2Fopenai-logo.png" alt="twbs" width="32" height="32" class="rounded-circle flex-shrink-0">
        <div class="d-flex gap-2 w-100 justify-content-between">
        <div>
@@ -54,6 +75,9 @@ content %}
     </a>
     `;
         $("#list-group").append(gpt_data);
+      },
+      error: function (data) {
+        console.log("failed");
       },
     });
   });

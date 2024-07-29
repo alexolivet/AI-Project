@@ -1,0 +1,349 @@
+{% extends "base.html" %} {% block title %}{{page}}{% endblock %} {% block
+content %}
+<!-- START MAIN CONTAINER -->
+<div class="container">
+  <div class="row">
+    <!-- START SIDENAV -->
+    <div class="side-nav col-lg-3 col-md-12">
+      <!-- START NEW CHAT BUTTON -->
+      <div class="row p-2">
+        <div class="chat-btn d-flex align-items-center">
+          <button
+            class="btn collapseAll"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#collapseExample"
+            aria-expanded="false"
+            aria-controls="collapseExample"
+          >
+            + Show Models
+          </button>
+        </div>
+      </div>
+
+      <!-- START MODELS -->
+      <div class="row p-2">
+        <label for="gpt-model" class="form-label">Models</label>
+        <small><b>** {% if session.chat_model %}
+            Current Session Model: {{ session.chat_model }}
+            {% else %}
+            Current Model: None selected
+            {% endif %} **</b></small>
+        <select name="gpt-model" id="gpt-model" class="form-select gpt-model">
+          {% if models %} 
+          {% for model in models %}
+          {% if model.id  == session.chat_model %}
+          <option value="{{ model.id}}"  selected="selected">{{ model.id }}</option>
+          {% else %}
+          <option value="{{ model.id}}">{{ model.id }}</option>
+          {% endif %}
+          {% endfor %} 
+          {% endif %}
+        </select>
+      </div>
+
+      <!-- START TEMPERATURE -->
+      <div class="row p-2">
+        <div class="col-12">
+          <p class="form-label">Temperature <sup>optional</sup></p>
+          <small>The temperature parameter influences the randomness of the generated responses. 
+            The temperature value ranges from 0 to 2. A higher value, such as 0.8, makes the answers more diverse, while a lower value, like 0.2, makes them more focused and deterministic.</small>
+        </div>
+        <div class="col-10">
+          <input
+            type="range"
+            class="form-range w-100"
+            min="0"
+            max="1"
+            step="0.1"
+            id="gpt-temperature"
+            name="gpt-temperature"
+            value="0"
+            oninput="tempValue.innerText = this.value"
+          />
+        </div>
+        <div class="col-2 text-end">
+          <output id="tempValue" for="gpt-temperature">0</output>
+        </div>
+      </div>
+
+      <!-- START MAXIMUM LENGTH -->
+      <!-- <div class="row p-2">
+        <div class="col-12">
+          <p class="form-label">Maximum Length <sup>optional</sup></p>
+        </div>
+        <div class="col-10">
+          <input
+            type="range"
+            class="form-range w-100"
+            min="0"
+            max="2048"
+            step="13"
+            id="gpt-max-len"
+            name="gpt-max-len"
+            value="1500"
+          />
+        </div>
+        <div class="col-2 text-end">
+          <output for="gpt-max-len">1500</output>
+        </div>
+      </div> -->
+
+      <!-- START SEED -->
+      <!-- <div class="row p-2">
+        <div class="col-12">
+          <p class="form-label">Seed <sup>optional</sup></p>
+          <small>seed is still in a beta feature, but it allows you to obtain consistent results for every input submitted to GPT. 
+            For instance, if you ask GPT to narrate a story about Indonesian rendang, the generated story may vary each time you ask. 
+            However, using the seed will prompt the system to make its best attempt at deterministic sampling, ensuring you get the same result for a given input.
+            currently supported for gpt-4-1106-preview and gpt-3.5-turbo-1106.</small>
+        </div>
+        <div class="col-10">
+          <input
+            type="range"
+            class="form-range w-100"
+            min="0"
+            max="2048"
+            step="13"
+            id="gpt-max-len"
+            name="gpt-max-len"
+            value="1500"
+          />
+        </div>
+        <div class="col-2 text-end">
+          <output for="gpt-max-len">1500</output>
+        </div>
+      </div> -->
+
+
+      <!-- START TOP P -->
+      <div class="row p-2">
+        <div class="col-12">
+          <p class="form-label">TopP <sup>optional</sup></p>
+          <small>The top P parameter controls the portion of the probability distribution that the AI model considers when selecting an action. 
+            Use a value between 0.8 and 1 to promote reliable results, favoring the most likely actions when making decisions.</small>
+        </div>
+        <div class="col-10">
+          <input
+            type="range"
+            class="form-range w-100"
+            min="0"
+            max="1"
+            step="0.01"
+            id="gpt-topP"
+            name="gpt-topP"
+            value="0.07"
+            oninput="topPValue.innerText = this.value"
+          />
+        </div>
+        <div class="col-2 text-end">
+          <output id="topPValue" for="gpt-topP">0.07</output>
+        </div>
+      </div>
+
+      <!-- START FREQUENCY PENALTY -->
+      <div class="row p-2">
+        <div class="col-12">
+          <p class="form-label">Frequency Penalty <sup>optional</sup></p>
+          <small>frequency_penalty helps reduce the chance of repeatedly sampling the same sequences of tokens. 
+            This parameter instructs the language model not to use the same words too frequently.
+            The default value is 0, and suitable penalty coefficients typically range from 0.1 to 1. 
+            A higher value means the model will be less inclined to reuse the same words, while a lower value implies a greater likelihood of repetitive word usage.</small>
+        </div>
+        <div class="col-10">
+          <input
+            type="range"
+            class="form-range w-100"
+            min="0"
+            max="2"
+            step="0.01"
+            id="gpt-frequency"
+            name="gpt-frequency"
+            value="1"
+            oninput="frequencyValue.innerText = this.value"
+          />
+        </div>
+        <div class="col-2 text-end">
+          <output id="frequencyValue" for="gpt-frequency">1</output>
+        </div>
+      </div>
+
+      <!-- START PRESENCE PENALTY -->
+      <div class="row p-2">
+        <div class="col-12">
+          <p class="form-label">Presence Penalty <sup>optional</sup></p>
+          <small>The presence_penalty parameter allows you to influence the model's avoidance of specific topics in its responses. 
+            Higher values, such as 1.0, make the model more likely to avoid mentioning particular topics provided in the user messages, while lower values, like 0.2, make the model less concerned about preventing those topics.</small>
+        </div>
+        <div class="col-10">
+          <input
+            type="range"
+            class="form-range w-100"
+            min="0"
+            max="2"
+            step="0.01"
+            id="gpt-precence"
+            name="gpt-precence"
+            value="0.5"
+            oninput="precenceValue.innerText = this.value"
+          />
+        </div>
+        <div class="col-2 text-end">
+          <output id="precenceValue" for="gpt-precence">0.5</output>
+        </div>
+        <ul class="list-unstyled">
+          <!-- START SETTINGS -->
+          <li class="nav-item">
+            <button type="submit" id="modelEdit" name="modelEdit" class="btn btn-primary">Change Model</button>
+         </li>
+          <li class="nav-item">
+             <a
+              class="nav-link collapseAll"
+              data-bs-toggle="collapse"
+              href="#showSystemInstructions"
+              role="button"
+              aria-expanded="false"
+              aria-controls="collapseExample"
+            >
+              <i class="bi bi-wrench"></i> System Instructions
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- START CONTENT -->
+    <div class="p-0 pt-2 col-lg-9 col-md-12 overflow-hidden">
+      <div id="list-group" class="chat-content-area">
+        <!-- START USER CHAT -->
+        <div class="row user-chat-box">
+          <div class="chat-txt">
+            <div class="collapse" id="collapseExample">
+              <div class="card card-body">
+                {% if models %}
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th scope="col">id</th>
+                      <th scope="col">Created</th>
+                      <th scope="col">object</th>
+                      <th scope="col">owned_by</th>
+                    </tr>
+                  </thead>
+                  <tbody class="table-group-divider">
+                    {% for model in models %}
+                    {% if model.id  == session.chat_model %}
+                    <tr>
+                      <th class="text-primary-emphasis" scope="row">{{model.id}}</th>
+                      <td class="text-primary-emphasis" scope="row">{{model.created}}</td>
+                      <td class="text-primary-emphasis" scope="row">{{model.object}}</td>
+                      <td class="text-primary-emphasis" scope="row">{{model.owned_by}}</td>
+                      <td scope="row"><small><span class="badge text-bg-primary">Selected</span></small></td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <th scope="row">{{model.id}}</th>
+                        <td scope="row">{{model.created}}</td>
+                        <td scope="row">{{model.object}}</td>
+                        <td scope="row">{{model.owned_by}}</td>
+                      </tr>
+                    {% endif %}
+                    {% endfor %}
+                  </tbody>
+                </table>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row user-chat-box">
+            <div class="chat-txt">
+              <div class="collapse" id="showSystemInstructions">
+                <div class="card card-body">
+                    {% if rows %}
+                    <label for="exampleInputRole1" class="form-label">Set Model's System Instructions</label>
+                    <small> The “system” role typically provides high-level instructions or context-setting messages. 
+                        It helps guide the behavior of the assistant throughout the conversation. For example, a system message could be “You are a helpful assistant.”</small>
+                    <hr>
+                    <table class="table table-hover table-striped">
+                        {% for row in rows %}
+                        <tr>
+                          {% if row["content"] == session.chat_content %}
+                          <th scope="row" style="display: none;">{{row["id"]}}</th>
+                          <th scope="row" class="text-primary-emphasis contentEdit" data-content="{{row["content"]}}" >{{row["content"]}} <span class="badge text-bg-primary">Selected</span></th>
+                          {% else %}
+                          <th scope="row" style="display: none;">{{row["id"]}}</th>
+                          <th scope="row" class="contentEdit" data-content="{{row["content"]}}">{{row["content"]}} <span class="badge text-bg-secondary">Set as default</span></th>
+                          {% endif %}
+                        </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                    {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+
+        <!-- START GPT CHAT -->
+      </div>
+
+      <!-- START CHAT INPUTS -->
+      <!-- <div class="chat-input-area overflow-hidden">
+        <div class="row">
+          <div class="col-12 chat-inputs-area-inner">
+            <div class="row chat-inputs-container d-flex align-items-center">
+              <textarea
+                name="chat-input"
+                id="chat-input"
+                class="col-11"
+                placeholder="Send a message"
+              ></textarea>
+              <button id="gpt-button" class="col-1 btn btn-primary">
+                <span
+                  ><i class="bi bi-cursor-fill" aria-hidden="true"></i>
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div> -->
+    </div>
+  </div>
+</div>
+<!-- START EXTERNAL JS RESOURCES -->
+<script
+  src="https://code.jquery.com/jquery-3.6.3.min.js"
+  integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU="
+  crossorigin="anonymous"
+></script>
+<script>jQuery('.collapseAll').click( function(e) {
+    jQuery('.collapse').collapse('hide');
+});</script>
+    <script>
+      $("#modelEdit,.contentEdit").click(function () {
+            var data={};
+           if (this.id == 'modelEdit') {
+            var gptmodel = $("#gpt-model").val();
+            data={gptmodel:gptmodel};
+          }
+          else if ($(this).hasClass('contentEdit')) {
+          var gptcontent = $(this).attr("data-content");
+          data={gptcontent:gptcontent};
+          }
+        $.ajax({
+          type: "POST",
+          url: "{{ url_for('setup_v2') }}",
+          data: data,
+          success: function (data) {
+            // console.log(data);
+            $("body").html(data);
+          
+          },
+          error: function (data) {
+           alert('error. check again')
+          },
+        });
+      });
+    </script>
+{% endblock %}

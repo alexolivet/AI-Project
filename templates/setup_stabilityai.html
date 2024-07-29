@@ -1,0 +1,62 @@
+{% extends "base.html" %} {% block title %}{{page}}{% endblock %} {% block
+    content %}
+    <div class="container">
+        <br />
+        <br />
+        <h1 class="mt-1">Setup Stability AI</h1>
+        <p class="lead">List all engines available to my organization/user.</p>
+        <form class="row row-cols-lg-auto g-1 align-items-center" method="post">
+            <div class="mb-3">
+                <label for="exampleInputRole1" class="form-label">Models</label>
+                <select id="model" name="model_stability_ai" class="form-select form-select-sm" aria-label=".form-select-sm example" required>
+                    <option value="">Select</option>
+                    {% if models %}
+                    {% for model_id in models %}
+                    <option value="{{ model_id}}">{{ model_id }}</option>
+                    {% endfor %}
+                    {% endif %}
+                </select>
+                <div id="modelHelp" class="form-text">
+                    Current selected Stability AI model
+                    <br>
+                    <b>** {% if session.chat_model_stability_ai %}
+                        Current Model: {{ session.chat_model_stability_ai }}
+                        {% else %}
+                        Current Model: None
+                        {% endif %} **</b>
+                </div>
+                <div class="mb-3">
+                    {% if rows %}
+                    <label for="exampleInputRole1" class="form-label">Content</label>
+                    <select id="content_list" name="content_list_stability-ai" class="form-select form-select-sm" aria-label=".form-select-sm example" required>
+                        <option value="">Select</option>
+                        {% for row in rows %}
+                        <option value="{{row["content"]}}">{{row["content"]}}</option>
+                        {% endfor %}
+                    </select>
+                    {% endif %}
+                    <div id="content_listHelp" class="form-text">
+                        An array of text prompts to use for generation.
+                        <br>
+                        <b>** {% if session.chat_content_stability_ai %}
+                            Current content: {{ session.chat_content_stability_ai }}
+                            {% else %}
+                            Current content: None
+                            {% endif %} **</b>
+                    </div>
+                </div>
+    
+                <div class="input-group-append">
+                    <button id="gpt-button" class="btn btn-primary">Setup Stability AI</button>
+                </div>
+        </form>
+        <br />
+        <br />
+        <p class="lead text-primary">Stability AI: Account and Credit associated with the API key.</p>
+        <ul class="list-group">
+        {% for item in accountItems %}
+        <li class="list-group-item"><span class="text-secondary">{{ item.0 }} </span>: <span class="text-success">{{ item.1 }}</span> </li>
+        {% endfor %}
+    </ul>
+    </div>
+    {% endblock %}

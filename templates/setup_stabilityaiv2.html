@@ -1,0 +1,370 @@
+{% extends "base.html" %} {% block title %}{{page}}{% endblock %} {% block
+    content %}
+    <!-- START MAIN CONTAINER -->
+    <div class="container">
+      <div class="row">
+        <!-- START SIDENAV -->
+        <div class="side-nav col-lg-3 col-md-12">
+          <!-- START NEW CHAT BUTTON -->
+          <div class="row p-2">
+            <div class="chat-btn d-flex align-items-center">
+              <button
+                class="btn collapseAll"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#collapseExample"
+                aria-expanded="false"
+                aria-controls="collapseExample"
+              >
+                + Show Models
+              </button>
+            </div>
+          </div>
+    
+          <!-- START MODELS -->
+          <div class="row p-2">
+            <label for="model_stability_ai" class="form-label">Models</label>
+            <small><b id="model_stability_ai_info">** {% if session.chat_model_stability_ai %}
+                Current Session Model: {{ session.chat_model_stability_ai }}
+                {% else %}
+                Current Model: None selected
+                {% endif %} **</b></small>
+            <select name="model_stability_ai" id="model_stability_ai" class="form-select gpt-model">
+              {% if models %} 
+              {% for model in models %}
+              {% if model.id  == session.chat_model_stability_ai %}
+              <option value="{{ model.id}}"  selected="selected">{{ model.id }}</option>
+              {% else %}
+              <option value="{{ model.id}}">{{ model.id }}</option>
+              {% endif %}
+              {% endfor %} 
+              {% endif %}
+            </select>
+          </div>
+    
+          <!-- START TEMPERATURE -->
+          <!-- <div class="row p-2">
+            <div class="col-12">
+              <p class="form-label">Temperature</p>
+              <small>The temperature parameter influences the randomness of the generated responses. 
+                The temperature value ranges from 0 to 2. A higher value, such as 0.8, makes the answers more diverse, while a lower value, like 0.2, makes them more focused and deterministic.</small>
+            </div>
+            <div class="col-10">
+              <input
+                type="range"
+                class="form-range w-100"
+                min="0"
+                max="1"
+                step="0.1"
+                id="gpt-temperature"
+                name="gpt-temperature"
+                value="0"
+              />
+            </div>
+            <div class="col-2 text-end">
+              <output for="gpt-temperature">0</output>
+            </div>
+          </div> -->
+    
+          <!-- START MAXIMUM LENGTH -->
+          <!-- <div class="row p-2">
+            <div class="col-12">
+              <p class="form-label">Maximum Length</p>
+            </div>
+            <div class="col-10">
+              <input
+                type="range"
+                class="form-range w-100"
+                min="0"
+                max="2048"
+                step="13"
+                id="gpt-max-len"
+                name="gpt-max-len"
+                value="1500"
+              />
+            </div>
+            <div class="col-2 text-end">
+              <output for="gpt-max-len">1500</output>
+            </div>
+          </div> -->
+    
+          <!-- START SEED -->
+          <!-- <div class="row p-2">
+            <div class="col-12">
+              <p class="form-label">Seed</p>
+              <small>seed is still in a beta feature, but it allows you to obtain consistent results for every input submitted to GPT. 
+                For instance, if you ask GPT to narrate a story about Indonesian rendang, the generated story may vary each time you ask. 
+                However, using the seed will prompt the system to make its best attempt at deterministic sampling, ensuring you get the same result for a given input.
+                currently supported for gpt-4-1106-preview and gpt-3.5-turbo-1106.</small>
+            </div>
+            <div class="col-10">
+              <input
+                type="range"
+                class="form-range w-100"
+                min="0"
+                max="2048"
+                step="13"
+                id="gpt-max-len"
+                name="gpt-max-len"
+                value="1500"
+              />
+            </div>
+            <div class="col-2 text-end">
+              <output for="gpt-max-len">1500</output>
+            </div>
+          </div> -->
+    
+    
+          <!-- START TOP P -->
+          <!-- <div class="row p-2">
+            <div class="col-12">
+              <p class="form-label">TopP</p>
+              <small>The top P parameter controls the portion of the probability distribution that the AI model considers when selecting an action. 
+                Use a value between 0.8 and 1 to promote reliable results, favoring the most likely actions when making decisions.</small>
+            </div>
+            <div class="col-10">
+              <input
+                type="range"
+                class="form-range w-100"
+                min="0"
+                max="1"
+                step="0.01"
+                id="gpt-topP"
+                name="gpt-topP"
+                value="0.07"
+              />
+            </div>
+            <div class="col-2 text-end">
+              <output for="gpt-topP">0.07</output>
+            </div>
+          </div> -->
+    
+          <!-- START FREQUENCY PENALTY -->
+          <!-- <div class="row p-2">
+            <div class="col-12">
+              <p class="form-label">Frequency Penalty</p>
+              <small>frequency_penalty helps reduce the chance of repeatedly sampling the same sequences of tokens. 
+                This parameter instructs the language model not to use the same words too frequently.
+                The default value is 0, and suitable penalty coefficients typically range from 0.1 to 1. 
+                A higher value means the model will be less inclined to reuse the same words, while a lower value implies a greater likelihood of repetitive word usage.</small>
+            </div>
+            <div class="col-10">
+              <input
+                type="range"
+                class="form-range w-100"
+                min="0"
+                max="2"
+                step="0.01"
+                id="gpt-frequency"
+                name="gpt-frequency"
+                value="1"
+              />
+            </div>
+            <div class="col-2 text-end">
+              <output for="gpt-frequency">1</output>
+            </div>
+          </div> -->
+    
+          <!-- START PRESENCE PENALTY -->
+          
+          <div class="row p-2">
+            <!-- <div class="col-12">
+              <p class="form-label">Presence Penalty</p>
+              <small>The presence_penalty parameter allows you to influence the model's avoidance of specific topics in its responses. 
+                Higher values, such as 1.0, make the model more likely to avoid mentioning particular topics provided in the user messages, while lower values, like 0.2, make the model less concerned about preventing those topics.</small>
+            </div>
+            <div class="col-10">
+              <input
+                type="range"
+                class="form-range w-100"
+                min="0"
+                max="2"
+                step="0.01"
+                id="gpt-precence"
+                name="gpt-precence"
+                value="0.5"
+              />
+            </div>
+            <div class="col-2 text-end">
+              <output for="gpt-precence">0.5</output>
+            </div> -->
+            <ul class="list-unstyled">
+              <!-- START SETTINGS -->
+              <li class="nav-item">
+                <button type="submit" id="modelEditStabilityAi" name="modelEditStabilityAi" class="btn btn-primary">Change Model</button>
+             </li>
+              <li class="nav-item">
+                 <a
+                  class="nav-link collapseAll"
+                  data-bs-toggle="collapse"
+                  href="#accountCredit"
+                  role="button"
+                  aria-expanded="false"
+                  aria-controls="collapseExample"
+                >
+                  <i class="bi bi-wrench"></i> Account & Credit
+                </a>
+              </li>
+              <li class="nav-item">
+                <a
+                 class="nav-link collapseAll"
+                 data-bs-toggle="collapse"
+                 href="#systemStatus"
+                 role="button"
+                 aria-expanded="false"
+                 aria-controls="collapseExample"
+               >
+               <i class="bi bi-heart-pulse-fill"></i> System Health
+               </a>
+             </li>
+            </ul>
+          </div>
+        </div>
+    
+        <!-- START CONTENT -->
+        <div class="p-0 pt-2 col-lg-9 col-md-12 overflow-hidden">
+          <div id="list-group" class="chat-content-area">
+            <!-- START USER CHAT -->
+            <div class="row user-chat-box">
+              <div class="chat-txt">
+                <div class="collapse" id="collapseExample">
+                  <div class="card card-body">
+                    {% if models %}
+                    <table class="table table-hover">
+                      <thead>
+                        <tr>
+                          <th scope="col">id</th>
+                          <th scope="col">Description</th>
+                          <th scope="col">Name</th>
+                          <th scope="col">Type</th>
+                        </tr>
+                      </thead>
+                      <tbody class="table-group-divider">
+                        {% for model in models %}
+                        {% if model.id  == session.chat_model_stability_ai %}
+                        <tr>
+                          <th class="text-primary-emphasis" scope="row">{{model.id}}</th>
+                          <td class="text-primary-emphasis" scope="row">{{model.description}}</td>
+                          <td class="text-primary-emphasis" scope="row">{{model.name}}</td>
+                          <td class="text-primary-emphasis" scope="row">{{model.type}}</td>
+                          <td scope="row"><small><span class="badge text-bg-primary">Selected</span></small></td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <th scope="row">{{model.id}}</th>
+                            <td scope="row">{{model.description}}</td>
+                            <td scope="row">{{model.name}}</td>
+                            <td scope="row">{{model.type}}</td>
+                          </tr>
+                        {% endif %}
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="row user-chat-box">
+                <div class="chat-txt">
+                  <div class="collapse" id="accountCredit">
+                    <div class="card card-body">
+                        {% if accountItems %}
+                        <label for="exampleInputRole1" class="form-label">Stability AI: Account and Credit associated with the API key.</label>
+                        <hr>
+                        <table class="table table-hover table-striped">
+                            {% for item in accountItems %}
+                            <tr>
+                              <th scope="row" class="text-primary-emphasis" >{{ item.0 }} </th>
+                              <th scope="row" class="text-secondary-emphasis" >{{ item.1 }} </th>
+                            </tr>
+                            {% endfor %}
+                          </tbody>
+                        </table>
+                        {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="row user-chat-box">
+                <div class="chat-txt">
+                  <div class="collapse" id="systemStatus">
+                    <div class="card card-body">
+                        {% if systemStatusItems %}
+                        <label for="exampleInputRole1" class="form-label">Stability AI: System Status.</label>
+                        <hr>
+                        <table class="table table-hover table-striped">
+                            {% for item in systemStatusItems %}
+                            <tr>
+                              <th scope="row" class="text-primary-emphasis" >{{ item.0 }} </th>
+                              <th scope="row" class="text-secondary-emphasis" >{{ item.1 }} </th>
+                            </tr>
+                            {% endfor %}
+                          </tbody>
+                        </table>
+                        {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+    
+            <!-- START GPT CHAT -->
+          </div>
+    
+          <!-- START CHAT INPUTS -->
+          <!-- <div class="chat-input-area overflow-hidden">
+            <div class="row">
+              <div class="col-12 chat-inputs-area-inner">
+                <div class="row chat-inputs-container d-flex align-items-center">
+                  <textarea
+                    name="chat-input"
+                    id="chat-input"
+                    class="col-11"
+                    placeholder="Send a message"
+                  ></textarea>
+                  <button id="gpt-button" class="col-1 btn btn-primary">
+                    <span
+                      ><i class="bi bi-cursor-fill" aria-hidden="true"></i>
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div> -->
+        </div>
+      </div>
+    </div>
+    <!-- START EXTERNAL JS RESOURCES -->
+    <script
+      src="https://code.jquery.com/jquery-3.6.3.min.js"
+      integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU="
+      crossorigin="anonymous"
+    ></script>
+    <script>jQuery('.collapseAll').click( function(e) {
+        jQuery('.collapse').collapse('hide');
+    });</script>
+    <script>
+      $("#modelEditStabilityAi").click(function () {
+        var model_stability_ai = $("#model_stability_ai").val();
+        console.log(model_stability_ai);
+       
+        $.ajax({
+          type: "POST",
+          url: "{{ url_for('setup_stabilityaiv2') }}",
+          data: {
+            model_stability_ai: model_stability_ai,
+          },
+          success: function (data) {
+            console.log(data);
+            $("body").html(data);
+          
+          },
+          error: function (data) {
+            $("body").html(data);
+            alert('error. check again')
+          },
+        });
+      });
+    </script>
+    {% endblock %}
+    

@@ -1,0 +1,107 @@
+{% extends "base.html" %} {% block title %}{{page}}{% endblock %} {% block
+content %}
+<div class="container">
+  <br />
+  <br />
+  <h1 class="mt-1">Image Variations with Stability_ai</h1>
+  <p class="lead">
+    The image variations endpoint allows you to generate a variation of a given
+    image. Image is saved to folder with this logic.
+  </p>
+  <div class="mb-3">
+    <label>Select an image</label>
+    <select id="choice" name="image_path" onchange="changeImage()()">
+      <option value="">-- Select an option --</option>
+      {% for path in image_path%}
+      <option data-img_src="{{path}}" value="{{path}}">{{path}}</option>
+      {% endfor %}
+    </select>
+    <div
+      id="result"
+      style="height: 250px; border: 0.5px solid #000; text-align: center"
+    ></div>
+    <div class="input-group-append">
+      <button id="gpt-button" type="submit" class="btn btn-primary">
+        Ask Stability_ai
+      </button>
+    </div>
+  </div>
+  <!-- ajax response goes here -->
+  <div id="list-group" class="list-group w-auto"></div>
+</div>
+<script
+  src="https://code.jquery.com/jquery-3.6.3.min.js"
+  integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU="
+  crossorigin="anonymous"
+></script>
+<script>
+  $("#gpt-button").click(function () {
+    var path_to_feed = $("#choice").val();
+    let html_data = "";
+    html_data += `
+        <a href="#" class="list-group-item list-group-item-action d-flex gap-3 py-3">
+          <img src="{{ url_for('static', filename='images/favicon.png') }}" alt="twbs" width="32" height="32" class="rounded-circle flex-shrink-0">
+          <div class="d-flex gap-2 w-100 justify-content-between">
+            <div>
+              <p class="mb-0 opacity-75"> <img src="${path_to_feed}" class="img-thumbnail" class="img-thumbnail" alt="{{path}}" style="width: 10%; height: 10%"></p>
+            </div>
+          </div>
+        </a>
+        `;
+    // $("#chat-input").val("");
+    $("#list-group").append(html_data);
+    $.ajax({
+      type: "POST",
+      url: "{{ url_for('imgvar_stabilityai') }}",
+      data: {
+        prompt: path_to_feed,
+      },
+      success: function (data) {
+        console.log("succcess");
+        console.log(data.content);
+        if (data.content.match(/\.(jpg|jpeg|gif|png)$/) != null) {
+          let gpt_data = "";
+          gpt_data += `
+        <a href="${data.content}" class="list-group-item list-group-item-action d-flex gap-3 py-3">
+          <img src="https://digital-practice.ams3.cdn.digitaloceanspaces.com/static%2Fapp%2Fimg%2Fopenai-logo.png" alt="twbs" width="32" height="32" class="rounded-circle flex-shrink-0">
+           <div class="d-flex gap-2 w-100 justify-content-between">
+           <div>
+          <p class="mb-0 opacity-75"> <img src="static/out/${data.content}" class="image""></p>
+          </div>
+        </div>
+        </a>
+        `;
+          $("#list-group").append(gpt_data);
+        } else {
+          let gpt_data = "";
+          gpt_data += `
+      <p>${data.content}</p>
+        `;
+          $("#list-group").append(gpt_data);
+        }
+      },
+      error: function (data) {
+        console.log("failed");
+        let gpt_data = "";
+        gpt_data += `
+      <p>${data.content}</p>
+        `;
+      },
+    });
+  });
+</script>
+<script>
+  function changeImage() {
+    var choice = document.getElementById("choice").value;
+    if (choice == "") {
+      alert("No Image Selected!");
+    } else {
+      var image = choice;
+    }
+
+    var result = document.getElementById("result");
+    result.removeAttribute("style");
+    result.innerHTML = "<img src='" + image + "' width='50%' height='50%'/>";
+  }
+</script>
+{% endblock %}

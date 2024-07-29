@@ -1,0 +1,90 @@
+    {% extends "base.html" %} {% block title %}{{page}}{% endblock %} {% block
+        content %}
+        <div class="container">
+        <h1 class="mt-1">ChromaDb Visualizer</h1>
+        <div id="mySelectDiv">
+        {% if collections_from_sql_names | length > 0 %}
+        <select name="selected_collection" id="selected_collection" class="form-select gpt-model">
+          <option disabled selected value="">Please select</option>
+          {% for collection in collections_from_sql_names %}
+          <option data-uuid="{{collection}}" value="{{collection}}">{{collection}}</option>
+          {% endfor %}
+        </select>
+        {% else %}
+        <p>There are no collections.</p>
+        {% endif %}
+    </div>
+        <div >  
+            <table class="table table-info table-striped" id="myTableId">
+                <tbody id="list-group">
+                </tbody>
+              </table>
+        </div>
+    </div>
+        </div>
+        <!-- START EXTERNAL JS RESOURCES -->
+  <script
+  src="https://code.jquery.com/jquery-3.6.3.min.js"
+  integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU="
+  crossorigin="anonymous"></script>
+ <script>
+ $('#selected_collection').change(function(){
+     $('#myTableId tbody').empty();
+    var collection_name_from_form= $(this).val();
+    $.ajax({
+        type: "POST",
+        url: "{{ url_for('chroma_view_database') }}",
+        data: {
+            selected_collection:"selected_collection",collection_name_from_form:collection_name_from_form
+        },
+        success:function(data) {
+                console.log(data)
+                console.log("success")
+                let gpt_data = "";
+                gpt_data += `
+                <tr><th>Action:</th><td><a class="btn btn-inf" type="button" href="#" id="delete_collection">
+                <i class="bi bi-trash3-fill"></i> Delete Collection
+              </a></td></tr>
+                <tr><th>documents:</th><td>${data.content.documents}</td></tr> 
+                <tr><th>embeddings:</th><td>${data.content.embeddings}</td></tr>
+                <tr><th>ids:</th><td>${data.content.ids}</td></tr>
+                <tr><th>metadata:</th><td>${data.content.metadata}</td></tr>
+                        `;
+            $.each(data, function(index) {
+                $("#list-group").append(gpt_data);
+    });
+            }
+        });        
+ });
+        </script>
+        <script>
+            // delete collection logic
+            $(document).on('click','#delete_collection', function () { 
+                console.log("click delete")
+              var get_selected_collection = $("#selected_collection").val();
+              console.log(get_selected_collection)
+              $.ajax({
+                type: "POST",
+                url: "{{ url_for('chroma_view_database') }}",
+                data: {
+                  delete_collection:"delete_collection",get_selected_collection:get_selected_collection
+                },
+                success:function(data) {
+                      console.log("delete success", data)
+                      $("#selected_collection option[value='" + get_selected_collection + "']").remove();
+                    $("#mySelectDiv").load(location.href + " #mySelectDiv");
+                    window.location.reload();
+                    },
+                    error: function (jqXHR, textStatus, errorThrown,data) {
+                        console.log("delete error",data);
+                        if (jqXHR.status == 404 || errorThrown == 'Not Found') {
+                            console.log("delete error",data);
+                            window.location.reload();
+                        }
+                        
+                    }
+                });
+             });
+            </script>
+        {% endblock %}
+        

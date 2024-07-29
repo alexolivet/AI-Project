@@ -1,0 +1,82 @@
+{% extends "base.html" %} {% block title %}{{page}}{% endblock %} {% block
+content %}
+<div class="container">
+  <br />
+  <br />
+  <h1 class="mt-1">Webscraper</h1>
+  <p class="lead">
+    Web scraping refers to extracting data from websites programmatically
+  </p>
+  <form class="row g-3" method="POST" action="{{ url_for('scraper') }}">
+    <div class="mb-3">
+      <label for="basic-url" class="form-label"
+        >define a HTML document(url)</label
+      >
+      <div class="input-group">
+        <select
+          id="example-getting-started"
+          multiple="multiple"
+          name="search_html_items"
+        >
+          <option value="all">all tags</option>
+          <option value="title">title</option>
+          <option value="a">links</option>
+          <option value="p">Text block</option>
+          <option value="img">Images</option>
+          <option value="video">video</option>
+          <option value="script">Script</option>
+          <option value="div">div</option>
+        </select>
+        <input
+          type="url"
+          name="url"
+          class="form-control"
+          id="basic-url"
+          aria-describedby="basic-addon3 basic-addon4"
+          required
+        />
+      </div>
+      <div class="form-text" id="basic-addon4"></div>
+    </div>
+    <div class="col-12">
+      <button type="submit" class="btn btn-primary">Get data</button>
+    </div>
+  </form>
+  {% if url %}
+  <p>
+    <span class="badge bg-success">{{ counter }}</span> Scrap Results for
+    <a href="{{ url }}"> {{ url }}</a>
+  </p>
+  {% if msg %}
+  <pre> {{msg}} </pre>
+  {% endif %} {% if scrapedpage %}
+  <pre> {{scrapedpage}} </pre>
+  {% endif %}
+  <div class="col-12">
+    <div class="bg-white shadow p-4 rounded results">
+      {% if results %} {% for result in results %}
+      <p>{{ result | join(' ') }}</p>
+      <!-- <p>{{ result | join(' ') }}</p> -->
+      {% endfor %} {% endif %} {% for path in image_paths %}
+      <a href=" {{  path }} "> <img src=" {{ path }} " class="img" /> </a>
+      {% endfor %} {% for path in video_paths %}
+      <!-- playsinline is required for iphone -->
+      <video autoplay loop muted playsinline>
+        <source src="{{  path }}" type="video/mp4" />
+      </video>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/0.9.13/js/bootstrap-multiselect.js"></script>
+<script>
+  $("#example-getting-started").multiselect({
+    templates: {
+      button:
+        '<button type="button" class="multiselect dropdown-toggle btn btn-primary" data-bs-toggle="dropdown" aria-expanded="false"><span class="multiselect-selected-text"></span></button>',
+    },
+  });
+</script>
+{% endblock %}

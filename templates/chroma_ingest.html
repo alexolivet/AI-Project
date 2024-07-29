@@ -1,0 +1,313 @@
+{% extends "base.html" %} {% block title %}{{ page }}{% endblock %} {% block
+content %}
+<!-- START MAIN CONTAINER -->
+<div class="container-fluid">
+  <div class="row">
+    <!-- START SIDENAV -->
+    <div class="side-nav col-lg-3 col-md-12">
+      <!-- START NEW CHAT BUTTON -->
+      <div class="row p-2">
+        <div class="chat-btn d-flex align-items-center">
+          <span class="d-block">{{ page }}</span>
+        </div>
+      </div>
+
+      <!-- START MODELS -->
+      <div class="row p-2">
+        {% if collections|length > 0 %}
+        <label for="gpt-model" class="form-label">Collections</label>
+        <select name="gpt-model" id="gpt-model" class="form-select gpt-model">
+          {% for coll in collections %}
+          <option value="{{ coll["name"] }}">{{ coll["name"] }}</option>
+          {% endfor %}
+        </select>
+        {% endif %}
+      </div>
+
+      <!-- START TEMPERATURE -->
+      <div class="row p-2">
+        <div class="col-12">
+          <p class="form-label">URLs</p>
+        </div>
+        <div class="col-10 input-group input-group-lg">
+          <input
+            type="url"
+            class="form-control"
+            style="
+              border: 1px dashed black;
+              padding: 1em;
+              font-size: calc(0.6vw + 0.6em);
+              direction: ltr;
+              width: 30vw;
+              margin: auto;
+              text-align: justify;
+              inline-size: 150px;
+              overflow-wrap: break-word;
+            "
+            name="user_input_url"
+            oninput="this.size = this.value.length"
+            pattern="[Hh][Tt][Tt][Pp][Ss]?:\/\/(?:(?:[a-zA-Z\u00a1-\uffff0-9]+-?)*[a-zA-Z\u00a1-\uffff0-9]+)(?:\.(?:[a-zA-Z\u00a1-\uffff0-9]+-?)*[a-zA-Z\u00a1-\uffff0-9]+)*(?:\.(?:[a-zA-Z\u00a1-\uffff]{2,}))(?::\d{2,5})?(?:\/[^\s]*)?"
+            id="user_input_url"
+            placeholder="Comma separated url(s)"
+            aria-describedby="inputGroup-sizing-lg"
+          />
+        </div>
+      </div>
+      <!-- START MAXIMUM LENGTH -->
+      <div class="row p-2">
+        <div class="col-12">
+          <p class="form-label">File</p>
+        </div>
+        <div class="col-10">
+          <input
+            type="file"
+            name="filefield"
+            id="filefield"
+            multiple="multiple"
+            onchange="javascript:updateList()"
+            accept="application/pdf"
+            class="btn btn-primary"
+          />
+          <button id="btn-file-reset-id" class="btn btn-info" type="button">
+            Reset file
+          </button>
+        </div>
+        <div class="col-10">
+          <output id="fileList" for="filefield"></output>
+        </div>
+      </div>
+      <!-- START TEMPERATURE -->
+      <div class="row p-2">
+        <div class="col-12">
+          <p class="form-label">Collection name</p>
+        </div>
+        <div class="col-10 input-group input-group-lg">
+          <input
+            type="text"
+            class="form-control"
+            name="collection_name"
+            id="collection_name"
+            placeholder="between 3 to 63 chars"
+            minlength="3"
+            maxlength="63"
+            pattern=".{3,63}"
+          />
+        </div>
+        <div class="col-12">
+            <button id="collection-button" class="btn btn-info">
+              Save docs to ChromaDB
+              </button>
+        </div>
+      </div>
+      <!-- BOTTOM SIDE COLUMN -->
+      <div class="row p-2">
+        <ul class="list-unstyled">
+          <!-- START SETTINGS -->
+          <li class="nav-item">
+            <a class="nav-link" href="#">
+              <i class="bi bi-wrench"></i> Settings
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- START CONTENT -->
+    <div class="content p-0 pt-2 col-lg-9 col-md-12">
+      <div id="list-group" class="chat-content-area"></div>
+      <!-- START CHAT INPUTS -->
+      <div class="chat-input-area overflow-hidden" id="hidden_div">
+        <div class="row">
+          <div class="col-12 chat-inputs-area-inner">
+            <div class="row chat-inputs-container d-flex align-items-center">
+              <textarea
+                name="chat-input"
+                id="chat-input"
+                class="col-11"
+                placeholder="Ask anything"
+                required
+              ></textarea>
+              <button id="gpt-button" class="col-1 btn btn-primary">
+                <span
+                  ><i class="bi bi-cursor-fill" aria-hidden="true"></i>
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- START EXTERNAL JS RESOURCES -->
+<script
+  src="https://code.jquery.com/jquery-3.6.3.min.js"
+  integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU="
+  crossorigin="anonymous"
+></script>
+<script>
+   // input box is not needed for now
+   $('#hidden_div').hide();
+  //either pdf or url
+  var user_input_url = $("#user_input_url");
+  var filefield = $("#filefield");
+  user_input_url.on("keyup change", function () {
+    filefield.prop("disabled", $(this).val() ? true : false);
+  });
+  filefield.on("keyup change", function () {
+    user_input_url.prop("disabled", $(this).val() ? true : false);
+  });
+  //reset button
+  $("#btn-file-reset-id").on("click", function () {
+    $("#filefield").val("");
+    $("#fileList").val("");
+  });
+  $("#collection-button").click(function () {
+      //collection_name validation
+      var minLength = 3;
+      var maxLength = 63;
+    var collection_name = $("#collection_name").val();
+    var user_input_url = removeSpaces($("#user_input_url").val());
+    var user_input_file = $(".fileList li")
+      .map(function () {
+        return this.textContent.trim();
+      })
+      .get();
+       // below comment is to avoid that prettier removes if condition
+    // prettier-ignore
+    if ((collection_name == "" && user_input_url == "") || (collection_name == "" && user_input_file == "") || (collection_name == "") || (collection_name.length < minLength && user_input_url == "") || (collection_name > maxLength && user_input_url == "") || (collection_name.length < minLength && user_input_file  == "") || (collection_name > maxLength && user_input_file  == ""))
+        {
+          alert("Error; Empty data not allowed. A collection_name (min 3 ; max 63) and url(s) or PDF(s) are required!");
+          e.preventDefault();
+          return false;
+        }
+    $("#user_input_url").on("input propertychange", (event) =>
+      user_input_file.prop("disabled", event.currentTarget.value !== "")
+    );
+    let html_data = "";
+    html_data += `
+                      <div class="row user-chat-box">
+                          <div class="chat-icon">
+                            <img
+                              class="chatgpt-icon"
+                              src="{{ url_for('static', filename='images/user-icon.png') }}"
+                            />
+                          </div>
+                          <div class="chat-txt">Collection Name: ${collection_name} <br/> Url(s): ${user_input_url} <br/> File(s):  ${user_input_file} </div>
+                      </div>`;
+    $("#collection_name").val("");
+    $("#user_input_url").val("");
+    $("#fileList").val("");
+    $("#filefield").val("");
+    $("#list-group").append(html_data);
+    $.ajax({
+      type: "POST",
+      url: "{{ url_for('chroma_ingest') }}",
+      dataType: "json",
+      processData: "False",
+      data: {
+        collection_name: collection_name,
+        user_input_url: user_input_url,
+        user_input_file: user_input_file,
+      },
+      enctype: "multipart/form-data",
+      success: function (data) {
+        let gpt_data = "";
+        gpt_data += `
+            <div class="row gpt-chat-box">
+            <div class="chat-icon">
+            <img class="chatgpt-icon" src="{{ url_for('static', filename='images/ollama-icon.jpg') }}" />
+            </div>
+                <div class="chat-txt">
+                            ${data.content}
+                          </div>
+            </div>
+                        `;
+        $("#list-group").append(gpt_data);
+        $("#gpt-model").append($('<option>', { 
+        value: data.gen_id_from_request,
+        text : data.gen_id_from_request
+    },'</option>'));
+      },
+      error: function (xhr, status, error, data) {
+        console.log(xhr.status)
+        console.log(error)
+        let gpt_data = "";
+        if (xhr.status == 404) {
+          gpt_data += `
+                      <!-- START GPT CHAT -->
+                        <div class="row gpt-chat-box">
+                          <div class="chat-icon">
+                            <img
+                              class="chatgpt-icon"
+                              src="{{ url_for('static', filename='images/ollama-icon.jpg') }}"
+                            />
+                          </div>
+                          <div class="chat-txt">
+                           404: ${xhr.status}${data.content}
+                          </div>
+                        </div>
+                        `;
+        } else {
+          gpt_data += `
+                      <!-- START GPT CHAT -->
+                        <div class="row gpt-chat-box">
+                          <div class="chat-icon">
+                            <img  class="chatgpt-icon"
+                              src="{{ url_for('static', filename='images/ollama-icon.jpg') }}"
+                            />
+                          </div>
+                          <div class="chat-txt">
+                            ${xhr.status}
+                          </div>
+                        </div>
+                        `;
+        }
+        $("#list-group").append(gpt_data);
+      },
+    });
+  });
+  $("#gpt-button").click(function () {   
+    var question = $("#chat-input").val(); 
+});
+</script>
+<script>
+  updateList = function () {
+    var input = document.getElementById("filefield");
+    var output = document.getElementById("fileList");
+    var children = "";
+    for (var i = 0; i < input.files.length; ++i) {
+      children += "<li>" + input.files.item(i).name + "</li>";
+    }
+    output.innerHTML = "<ul>" + children + "</ul>";
+    output.classList.add("fileList");
+  };
+</script>
+<script>
+  $("#user_input_url").change(function () {
+    if (this.value.indexOf(",") == -1) {
+      alert("Please separate multiple keywords with a comma.");
+    }
+    const array = this.value.split(",");
+
+    array.forEach(function (item) {
+      console.log(item);
+      var regex =
+        /(http|ftp|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?/;
+      if (!regex.test(item)) {
+        alert("Please enter valid URL. " + item);
+        return false;
+      } else {
+        // alert(item + "Valid URL.");
+        return true;
+      }
+    });
+  });
+</script>
+<script>
+  function removeSpaces(val) {
+    return val.split(" ").join("");
+  }
+</script>
+{% endblock %}

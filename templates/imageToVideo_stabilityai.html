@@ -1,0 +1,303 @@
+{% extends "base.html" %} {% block title %}{{page}}{% endblock %} {% block
+content %}
+<!-- START MAIN CONTAINER -->
+<div class="container">
+  <div class="row">
+    <!-- START SIDENAV -->
+    <div class="side-nav col-lg-2 col-md-12">
+      <!-- START NEW CHAT BUTTON -->
+      <div class="row p-2">
+        <div class="chat-btn d-flex align-items-center">
+          <button
+            class="btn collapseAll"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#collapseExample"
+            aria-expanded="false"
+            aria-controls="collapseExample"
+          >
+          {{ page }}
+          </button>
+        </div>
+      </div>
+      <!-- START MODELS -->
+      <div class="row p-2">
+        <label for="model_stability_ai" class="form-label">Images</label>
+        <div class="pics">
+          <div class="thumbs">
+            {% if image_path %} {% for path in image_path%}
+            <div class="preview">
+              <a href="#" class="selected" data-full="{{path}}" data-title="">
+                <img src="{{path}}" />
+              </a>
+            </div>
+            {% endfor %} {% endif %}
+          </div>
+        </div>
+      </div>
+      <!-- START TEMPERATURE -->
+      <!-- START MAXIMUM LENGTH -->
+      <!-- START SEED -->
+      <!-- START TOP P -->
+      <!-- START FREQUENCY PENALTY -->
+      <!-- START PRESENCE PENALTY -->
+      <br />
+      <div class="row p-2">
+        <!-- START SETTINGS -->
+        <!-- <ul class="list-unstyled">
+              <li class="nav-item">
+                <button
+                  type="submit"
+                  id="modelEditStabilityAi"
+                  name="modelEditStabilityAi"
+                  class="btn btn-primary"
+                >
+                  Change Model
+                </button>
+              </li>
+              <li class="nav-item">
+                <a
+                  class="nav-link collapseAll"
+                  data-bs-toggle="collapse"
+                  href="#accountCredit"
+                  role="button"
+                  aria-expanded="false"
+                  aria-controls="collapseExample"
+                >
+                  <i class="bi bi-wrench"></i> Account & Credit
+                </a>
+              </li>
+            </ul> -->
+      </div>
+    </div>
+
+    <!-- START CONTENT -->
+    <div class="p-0 pt-0 col-lg-10 overflow-hidden">
+      <div class="chat-content-area-image">
+        <!-- START USER CHAT -->
+        <div class="row user-chat-box">
+          <div class="chat-txt">
+            <div class="row align-items-start">
+              <div class="col">
+                {% if image_path %} {% for path in image_path[0:1] %}
+                <a href="{{path}}" class="full" title="">
+                  <!-- first image is viewable to start -->
+                  <img src="{{path}}" id="choice" />
+                </a>
+                {% endfor %} {% endif %}
+              </div>
+              <!-- seed -->
+              <div class="col">
+                <p class="form-label text-success">Seed <sup>optional</sup></p>
+                <input
+                    type="range"
+                    class="form-range w-100"
+                    min="0"
+                    max="4294967294"
+                    step="1"
+                    id="seed"
+                    name="seed"
+                    value="0"
+                    oninput="image_to_video_seed.innerText = this.value"
+                  />
+                <div class="col-2 text-end">
+                  <output id="image_to_video_seed" for="image_to_video_seed">0</output>
+                </div>
+                  <!-- cfg_scale -->
+                <p class="form-label text-secondary">cfg_scale <sup>optional</sup></p>
+                <input
+                    type="range"
+                    class="form-range w-100"
+                    min="0"
+                    max="10"
+                    step="0.1"
+                    id="cfg_scale"
+                    name="cfg_scale"
+                    value="1.8"
+                    oninput="image_to_video_cfg_scale.innerText = this.value"
+                  />
+                <div class="col-2 text-end">
+                  <output id="image_to_video_cfg_scale" for="image_to_video_seed">1.8</output>
+                </div>
+                 <!-- motion_bucket_id -->
+                 <p class="form-label text-primary">motion_bucket_id <sup>optional</sup></p>
+                 <input
+                     type="range"
+                     class="form-range w-100"
+                     min="0"
+                     max="255"
+                     step="1"
+                     id="motion_bucket_id"
+                     name="motion_bucket_id"
+                     value="127"
+                     oninput="image_to_video_motion_bucket_id.innerText = this.value"
+                   />
+                 <div class="col-2 text-end">
+                   <output id="image_to_video_motion_bucket_id" for="image_to_video_seed">127</output>
+                 </div><br>
+                <button
+                  id="gpt-button"
+                  name="gpt-button"
+                  type="submit"
+                  class="btn btn-primary btn-sm"
+                >
+                  Get Video Variation
+                </button>
+
+                <hr class="border-bottom border-3 border-dark">
+                  <div id="mySelectDiv">
+                {% if is_retreived|length > 0 %}
+                <select id="generation_id" required name="generation_id" class="form-select form-select-sm" aria-label=".form-select-sm example">
+                    <option disabled selected value="">Please select</option>
+                    {% for item in is_retreived %}
+                    <option data-value="{{item["id"]}}" value="{{item["token_val"]}}">{{item["token_val"]}}</option>
+                    {% endfor %}
+                </select>
+                {% else %}
+                <p>There are no video to pull. Select an image and send a request to StabilityAi.</p>
+                {% endif %}
+              </div>
+                <button
+                  type="submit"
+                  id="GetVideo"
+                  name="GetVideo"
+                  class="btn btn-primary btn-sm"
+                >
+                  Get Video file
+                </button>
+              </div>
+              <div class="col">
+                <div id="list-group"></div>
+                <div
+                  class="embed-responsive embed-responsive-1by1"
+                  id="list-video"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- START GPT CHAT -->
+      </div>
+      <!-- START CHAT INPUTS -->
+    </div>
+  </div>
+</div>
+<!-- START EXTERNAL JS RESOURCES -->
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+<script>
+  $(document).ready(function () {
+    $(".preview a").on("click", function () {
+      $(".selected").removeClass("selected");
+      $(this).addClass("selected");
+      var picture = $(this).data();
+
+      event.preventDefault(); //prevents page from reloading every time you click a thumbnail
+
+      $(".full img")
+        .fadeOut(100, function () {
+          $(".full img").attr("src", picture.full);
+          $(".full").attr("href", picture.full);
+          $(".full").attr("title", picture.title);
+          $("#list-group").empty();
+        })
+        .fadeIn();
+    }); // end on click
+  }); //end doc ready
+</script>
+<script>
+ $("#gpt-button").on("click", function() {
+     $("#list-group").empty();
+     $("#list-video").empty();
+     var path_to_feed = $("#choice").attr("src");
+     var seed = $("#seed").val();
+     var cfg_scale = $("#cfg_scale").val();
+     var motion_bucket_id = $("#motion_bucket_id").val();
+     $.ajax({
+         type: "POST",
+         url: "{{ url_for('imageToVideo_stabilityai') }}",
+         data: {
+             prompt: path_to_feed,seed:seed,cfg_scale:cfg_scale,motion_bucket_id:motion_bucket_id
+         },
+         success: function(data) {
+             console.log("succcess");
+             console.log(data.content);
+             let gpt_data = "";
+             gpt_data += `
+            <p>${data.content}</p>
+              `;
+             $("#list-group").append(gpt_data);
+             $("#generation_id").append($('<option>', { 
+              'data-value':data.RowIdForSelect,
+        value: data.gen_id_from_request,
+        text : data.gen_id_from_request
+    },'</option>'));
+      $("#mySelectDiv").load(location.href + " #mySelectDiv");
+         },
+         error: function(data) {
+             console.log("failed");
+             console.log(data.text);
+             let gpt_data = "";
+             gpt_data += `
+            <p>${data.content}</p>
+              `;
+             $("#list-group").append(gpt_data);
+         },
+     });
+ });
+ $("#GetVideo").on("click", function() {
+     $("#list-group").empty();
+     $("#list-video").empty();
+     var generation_id = $("#generation_id").val();
+     console.log("generation_id", generation_id)
+     var db_gen_id = $("#generation_id").children("option").filter(":selected").data("value");
+     console.log("db_gen_id", db_gen_id)
+     console.log(generation_id);
+     $.ajax({
+         type: "GET",
+         dataType: "json",
+         url: "{{ url_for('imageToVideo_stabilityai') }}",
+         data: {
+             generation_id: generation_id,
+             db_gen_id: db_gen_id,
+         },
+         success: function(data) {
+             console.log(data.content);
+             let video_gpt_data = "";
+             if (data.content == 202) {
+                 video_gpt_data += `
+                 <p>Response: ${data.content} . Video is not ready. Try again later</p>
+              `
+             } else {
+                 video_gpt_data += `
+              <video controls class="embed-responsive-item">
+            <source src="static/video/${data.content}" type="video/mp4" />
+            </video>
+              `;
+              $("#generation_id option[value='" + generation_id + "']").remove();
+              $("#mySelectDiv").load(location.href + " #mySelectDiv");
+             }
+
+             $("#list-video").append(video_gpt_data);
+         },
+         error: function(xhr, status, error,data) {
+             console.log("failed");
+             console.log('xhr',xhr.responseText);
+             console.log('xhr status',xhr.status);
+             let video_gpt_data = "";
+             if (xhr.status == 404) {
+                video_gpt_data += `
+                ${xhr.responseText}
+                `;
+              $("#generation_id option[value='" + generation_id + "']").remove();
+              $("#mySelectDiv").load(location.href + " #mySelectDiv");
+             }else{
+                video_gpt_data += `
+                ${xhr.responseText}
+                `;
+             }
+             $("#list-video").append(video_gpt_data);
+         },
+     });
+ });
+</script>
+{% endblock %}
