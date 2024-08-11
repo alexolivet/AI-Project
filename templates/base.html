@@ -38,7 +38,8 @@
     {% if page != "Chatbot project v2" and page != "Chatbot Ollama" and page !=
     "Embedding Ollama" and page != "chroma_ingest" and page !="Load-Embedding"
     and page != "Ollama Chatbot History" and page != "chroma_ingest_semantic" 
-    and page != "Ollama Function Call" %}
+    and page != "Ollama Function Call"
+    and page != "Ollama Function Call v2" %}
     <style>
       * {
         font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace !important;
@@ -437,6 +438,13 @@
                       class="dropdown-item"
                       href="{{url_for('ollama_function_call') }}"
                       >Ollama Function Call</a
+                    >
+                  </li>
+                  <li>
+                    <a
+                      class="dropdown-item"
+                      href="{{url_for('ollama_function_call_v2') }}"
+                      >Ollama Function Call v2</a
                     >
                   </li>
                   <li>
