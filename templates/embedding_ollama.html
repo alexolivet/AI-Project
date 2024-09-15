@@ -177,7 +177,7 @@ content %}
     if ((question == "" && user_input_url == "") || (question == "" && user_input_file == ""))
     {
       alert("Error; Empty data not allowed. A prompt and url(s) or PDF(s) are required!");
-      e.preventDefault();
+      // e.preventDefault();
       return false;
     }
     $("#user_input_url").on("input propertychange", (event) =>

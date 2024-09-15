@@ -11,6 +11,10 @@ padding: 1px;
 padding-top: 2px;
 }
 
+.no_display{
+  display: none;
+
+}
 
 .side-nav {
 background-color: #ffffff;

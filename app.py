@@ -88,14 +88,28 @@ from langchain_community.chat_models import ChatOllama
 # print(dir(ChatOllama))
 # print(inspect.getfullargspec(ChatOllama))
 from langchain_community.llms import Ollama
-from langchain_core.runnables import RunnablePassthrough
+from langchain_core.runnables import RunnablePassthrough, RunnableLambda
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import (
     ChatPromptTemplate,
     MessagesPlaceholder,
 )  # crafts prompts for our llm
+
+# chunking strategy
 from langchain.output_parsers import PydanticOutputParser
 from langchain.text_splitter import CharacterTextSplitter
+from langchain.text_splitter import SpacyTextSplitter
+from langchain.text_splitter import NLTKTextSplitter
+import nltk
+
+nltk.download("punkt", download_dir="/home/alexaj14/virtualenv/nltk_data")
+from nltk.tokenize.punkt import PunktSentenceTokenizer
+import spacy
+
+nlp = spacy.load("en_core_web_sm")
+# Document Specific Splitting - Python
+from langchain.text_splitter import PythonCodeTextSplitter
+
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain_experimental.llms.ollama_functions import (
     OllamaFunctions,
@@ -414,8 +428,8 @@ def get_top_headlines(query: str = None, country: str = None, category: str = No
     """Retrieve top headlines from newsapi.org (API key required)"""
 
     base_url = "https://newsapi.org/v2/top-headlines"
-    headers = {"x-api-key": os.environ["NEWS_API_KEY"]}
-    params = {"category": "general"}
+    headers = {"x-api-key": newsapi_key}
+    params = {"category": "general", "language": "en"}
     if query is not None:
         params["q"] = query
     if country is not None:
@@ -444,6 +458,21 @@ def what_is_bigger(n, m):
         return f"{n} and {m} are equal"
 
 
+def get_current_time():
+    """
+    Get the current time in a more human-readable format.
+    :return: The current time.
+    """
+
+    now = datetime.datetime.now()
+    current_time = now.strftime("%I:%M:%S %p")  # Using 12-hour format with AM/PM
+    current_date = now.strftime(
+        "%A, %B %d, %Y"
+    )  # Full weekday, month name, day, and year
+
+    return f"Current Date and Time = {current_date}, {current_time}"
+
+
 def get_current_weather_v2(city: str) -> str:
     """Get the current weather for a city
     Args:
@@ -457,9 +486,38 @@ def get_current_weather_v2(city: str) -> str:
 
 def chat_with_ollama_no_functions(user_question):
     response = ollama.chat(
-        model="dolphin_chat", messages=[{"role": "user", "content": user_question}]
+        model="dolphin-phi", messages=[{"role": "user", "content": user_question}]
     )
     return response
+
+
+def vision_with_ollama(blobUpload, prompt):
+    # Separate the metadata from the image data
+    head, data = blobUpload.split(",", 1)
+    # Get the file extension (gif, jpeg, png)
+    file_ext = head.split(";")[0].split("/")[1]
+    # Decode the image data
+    plain_data = base64.b64decode(data)
+    # Write the image to a file
+    with open("image." + file_ext, "wb") as f:
+        f.write(plain_data)
+        print(f)
+    # read image and encode to base64
+    with open(f.name, "rb") as image_file:
+        image_base64 = base64.b64encode(image_file.read()).decode("utf-8")
+
+    url = "http://localhost:11434/api/generate"
+    payload = {
+        "model": "moondream:v2",
+        "prompt": prompt,
+        "stream": False,
+        "images": [image_base64],
+    }
+    # send that to llava
+    response = requests.post(url, data=json.dumps(payload))
+    print(response.json()["response"])
+    content = response.json()["response"]
+    return content
 
 
 def chat_with_ollama(user_question):
@@ -497,7 +555,36 @@ def chat_with_ollama(user_question):
                                 ],
                             },
                         },
-                        "required": ["city"],
+                        "required": [],
+                    },
+                },
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "get_current_weather_v2",
+                    "description": "Use this function to search api.open-meteo.com to get weather from a given location.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "city": {
+                                "type": "string",
+                                "description": "The city and state, e.g. San Francisco, CA",
+                            },
+                        },
+                        "required": [],
+                    },
+                },
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "get_current_time",
+                    "description": "Get the current time in a more human-readable format.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {},
+                        "required": [],
                     },
                 },
             },
@@ -514,23 +601,6 @@ def chat_with_ollama(user_question):
                             "m": {"type": "float"},
                         },
                         "required": ["n", "m"],
-                    },
-                },
-            },
-            {
-                "type": "function",
-                "function": {
-                    "name": "get_news",
-                    "description": "Only use this if the user has explicitly ask for news. if the word news is NOT in the quert, do NOT run this function.Use this function to get the latest news from NewsApi.",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "query": {
-                                "type": "string",
-                                "description": "query phrase",
-                            },
-                        },
-                        "required": ["query"],
                     },
                 },
             },
@@ -1195,58 +1265,91 @@ def ollama_function_call_v2():
         for i in value:
             model_list.append(i)
     if request.method == "POST":
+        # question to AI
         user_input = request.form["prompt"]
-        print(user_input)
         try:
-            response = chat_with_ollama(user_input)
-            logging.info(f"response from function call: {response}")
-            if (
-                "tool_calls" in response["message"]
-                and response["message"]["tool_calls"]
-            ):
-                tools_calls = response["message"]["tool_calls"]
-                logging.info(f"tools_calls var: {tools_calls}")
-                for tool_call in tools_calls:
-                    tool_name = tool_call["function"]["name"]
-                    arguments = tool_call["function"]["arguments"]
-                    logging.info(f"arguments: {arguments}")
-                    if (
-                        tool_name == "get_current_weather"
-                        and "city" in arguments
-                        and arguments is not None
-                    ):
-                        result = get_current_weather(arguments["city"])
-                        print("Weather function result:", result)
-                        contentToAjax = result
-                    if (
-                        tool_name == "get_news"
-                        and "query" in arguments
-                        and arguments is not None
-                    ):
-                        result = get_news(arguments["query"])
-                        print("News function result:", result)
-                        contentToAjax = result
-                    elif (
-                        tool_name == "which_is_bigger"
-                        and "n" in arguments
-                        and "m" in arguments
-                    ):
-                        n, m = float(arguments["n"]), float(arguments["m"])
-                        result = what_is_bigger(n, m)
-                        print("Comparison function result:", result)
-                        contentToAjax = result
-                    else:
-                        print(f"No valid arguments found for function: {tool_name}")
-                        contentToAjax = (
-                            f"No valid arguments found for function: {tool_name}"
-                        )
+            if "image" in request.form:
+                # image data
+                blobUpload = request.form["image"]
+                response = vision_with_ollama(blobUpload, user_input)
+                contentToAjax = response
+                print("image response")
+                # # Separate the metadata from the image data
+                # head, data = blobUpload.split(",", 1)
+                # # Get the file extension (gif, jpeg, png)
+                # file_ext = head.split(";")[0].split("/")[1]
+                # # Decode the image data
+                # plain_data = base64.b64decode(data)
+                # # Write the image to a file
+                # with open("image." + file_ext, "wb") as f:
+                #     f.write(plain_data)
+                #     print(f.name)
             else:
-                print("chat_with_ollama_no_functions")
-                # If no tool calls or no valid arguments, use the LLM's response
-                response = chat_with_ollama_no_functions(user_input)
-                logging.info(f"no function calls: {response}")
-                print("AI response:", response["message"]["content"])
-                contentToAjax = response["message"]["content"]
+                response = chat_with_ollama(user_input)
+                logging.info(f"response from function call: {response}")
+                if (
+                    "tool_calls" in response["message"]
+                    and response["message"]["tool_calls"]
+                ):
+                    tools_calls = response["message"]["tool_calls"]
+                    logging.info(f"tools_calls var: {tools_calls}")
+                    for tool_call in tools_calls:
+                        tool_name = tool_call["function"]["name"]
+                        arguments = tool_call["function"]["arguments"]
+                        logging.info(f"arguments: {arguments}")
+                        if (
+                            tool_name == "get_current_weather_v2"
+                            and "city" in arguments
+                            and arguments is not None
+                        ):
+                            result = get_current_weather_v2(arguments["city"])
+                            print("Weather function result:", result)
+                            contentToAjax = result
+                        elif tool_name == "get_current_time":
+                            result = get_current_time()
+                            print("Current time function result:", result)
+                            contentToAjax = result
+                        elif (
+                            tool_name == "get_top_headlines"
+                            and "query" in arguments
+                            and "country" in arguments
+                            and "category" in arguments
+                            and arguments is not None
+                        ):
+                            result = get_top_headlines(
+                                arguments["query"],
+                                arguments["country"],
+                                arguments["category"],
+                            )
+                            print("News function result:", result)
+                            contentToAjax = result
+                        elif (
+                            tool_name == "which_is_bigger"
+                            and "n" in arguments
+                            and "m" in arguments
+                        ):
+                            n, m = float(arguments["n"]), float(arguments["m"])
+                            result = what_is_bigger(n, m)
+                            print("Comparison function result:", result)
+                            contentToAjax = result
+                        else:
+                            logging.info(
+                                f"No valid arguments found for function: {tool_name}"
+                            )
+                            # If no tool calls or no valid arguments, use the LLM's response
+                            response = chat_with_ollama_no_functions(user_input)
+                            logging.info(f"no function calls: {response}")
+                            print("AI response:", response["message"]["content"])
+                            contentToAjax = response["message"]["content"].replace(
+                                "\n", "<br>"
+                            )
+                else:
+                    print("chat_with_ollama_no_functions")
+                    # If no tool calls or no valid arguments, use the LLM's response
+                    response = chat_with_ollama_no_functions(user_input)
+                    logging.info(f"no function calls: {response}")
+                    print("AI response:", response["message"]["content"])
+                    contentToAjax = response["message"]["content"].replace("\n", "<br>")
         except Exception as e:
             print(e)
             contentToAjax = f"Oops something went wrong.: {sys.exc_info()[0]}"
@@ -1466,6 +1569,106 @@ def chroma_ingest():
     return render_template("chroma_ingest.html", page="chroma_ingest", **locals())
 
 
+@app.route("/chunking_strategies.html", methods=["POST", "GET"])
+def chunking_strategies():
+    if request.method == "POST":
+        # 0. Get data
+        chunking_strategy_from_form = request.form["chunking_strategy"]
+        collection_name_from_form = request.form["collection_name"]
+        user_input = request.form["prompt"]
+        try:
+            logging.info(f"Chunking Staretgy used: {chunking_strategy_from_form}")
+            if "fixed_size_chunking" in chunking_strategy_from_form:
+                chunk_size = 256
+                chunk_overlap = 20
+                text_splitter = CharacterTextSplitter(
+                    separator="\n\n", chunk_size=chunk_size, chunk_overlap=chunk_overlap
+                )
+                doc_splits = text_splitter.create_documents([user_input])
+
+            elif "naive" in chunking_strategy_from_form:
+                chunk_size = 0
+                chunk_overlap = 0
+                text_splitter = CharacterTextSplitter(separator="\n\n")
+                doc_splits = text_splitter.create_documents([user_input])
+
+            elif "NLTK" in chunking_strategy_from_form:
+                chunk_size = 0
+                chunk_overlap = 0
+                text_splitter = NLTKTextSplitter()
+                doc_splits = text_splitter.create_documents([user_input])
+
+            elif "spacy" in chunking_strategy_from_form:
+                chunk_size = 0
+                chunk_overlap = 0
+                text_splitter = SpacyTextSplitter()
+                doc_splits = text_splitter.create_documents([user_input])
+
+            elif "python" in chunking_strategy_from_form:
+                chunk_size = 30
+                chunk_overlap = 0
+                text_splitter = PythonCodeTextSplitter(
+                    chunk_size=chunk_size, chunk_overlap=chunk_overlap
+                )
+                doc_splits = text_splitter.create_documents([user_input])
+
+            else:
+                print("no other strategy devoloped.")
+                content = "No strategy found. stop here"
+                return jsonify(content=content), 200
+
+            # 2. Convert documents to Embeddings and store them
+            vectorstore = Chroma.from_documents(
+                documents=doc_splits,
+                collection_name=collection_name_from_form,
+                persist_directory=f"./vectorDatabase/{collection_name_from_form}",
+                embedding=embedding,
+            )
+            # Save the embedding to disk
+            # vectorstore.persist()
+            global Chromaclient_specific
+            get_chroma_client_specific(collection_name_from_form)
+            collections_specific = Chromaclient_specific.list_collections()
+            collections_from_chroma_compare = []
+            for coll in collections_specific:
+                # print(coll.name)
+                collections_from_chroma_compare.append(str(coll.id))
+                if collection_name_from_form in coll.name:
+                    collection_name_to_chroma = coll.name
+                    uuid = coll.id
+                    metadata = str(coll.metadata)
+                    print(metadata)
+            if len(collection_name_to_chroma) > 0:
+                content = "Documents saved to ChromaCollection"
+            else:
+                content = "Problem with saving data to ChromaCollection"
+        except Exception as e:
+            print("Exception", e)
+            e = str(e)
+            return jsonify(content=e), 200
+        else:
+            semantic = chunking_strategy_from_form
+            urls = "None"
+            user_input_file = "None"
+            store_chroma_in_sql_collection(
+                collection_name_from_form,
+                str(uuid),
+                metadata,
+                int(chunk_size),
+                int(chunk_overlap),
+                embed_model,
+                str(collection_name_from_form),
+                str(urls),
+                str(user_input_file),
+                semantic,
+            )
+
+        return jsonify(content=content), 200
+    return render_template(
+        "chunking_strategies.html", page="Chunking Strategies", **locals()
+    )
+
+
 @app.route("/chroma_view_database.html", methods=["POST", "GET"])
 def chroma_view_database():
     collections_from_sql = show_sql_collections()
@@ -1501,11 +1704,30 @@ def chroma_view_database():
 @app.route("/load_embedding_ollama.html", methods=["POST", "GET"])
 def load_embedding_ollama():
     collections_from_sql = show_sql_collections()
+    local_model_list = listInstalledModels()
+    model_list = []
+    for key, value in local_model_list.items():
+        for i in value:
+            model_list.append(i)
     if request.method == "POST":
-        get_selected_collection = request.form["get_selected_collection"]
-        print(get_selected_collection)
+        selected_model = request.form["selected_model"]
+        print("selected model", selected_model)
+        if "default" in selected_model:
+            model_local = ChatOllama(model="dolphin-phi")
+        else:
+            model_local = ChatOllama(model=selected_model)
+        system_prompt = request.form["system_prompt"]
+        if "save_system_prompt" in request.form:
+            print("save_system_instruction")
+            try:
+                save_system_instruction(system_prompt)
+            except Exception as e:
+                print(e)
+                return jsonify(content=e), 404
         if "ask_rag" in request.form:
             print("ask_rag")
+            get_selected_collection = request.form["get_selected_collection"]
+
             try:
                 # 0. Get data
                 prompt = request.form["prompt"]
@@ -1517,21 +1739,49 @@ def load_embedding_ollama():
                 )
                 retriever = get_collection_from_chroma.as_retriever()
                 # 2. Retrieval-Augmented Generation
-                after_rag_template = """You are an respectful and honest assistant. You have to answer the user's \
-                questions using only the context provided to you. If you don't know the answer, \
-                just say you don't know. Don't try to make up an answer.:
-                {context}
-                Question: {question}
-                """
-                after_rag_prompt = ChatPromptTemplate.from_template(after_rag_template)
-                after_rag_chain = (
-                    {"context": retriever, "question": RunnablePassthrough()}
-                    | after_rag_prompt
-                    | model_local
-                    | StrOutputParser()
-                )
+                if len(system_prompt) > 0:
+                    print("use system prompt")
+                    after_rag_template = """{system_prompt}
+                    {context}
+                    Question: {question}
+                    """
+
+                    def get_system_prompt(_):
+                        return system_prompt
+
+                    after_rag_prompt = ChatPromptTemplate.from_template(
+                        after_rag_template
+                    )
+                    after_rag_chain = (
+                        {
+                            "context": retriever,
+                            "question": RunnablePassthrough(),
+                            "system_prompt": RunnableLambda(get_system_prompt),
+                        }
+                        | after_rag_prompt
+                        | model_local
+                        | StrOutputParser()
+                    )
+                else:
+                    print("default prompt")
+                    after_rag_template = """You are an respectful and honest assistant. You have to answer the user's \
+                    questions using only the context provided to you. If you don't know the answer, \
+                    just say you don't know. Don't try to make up an answer.:
+                    {context}
+                    Question: {question}
+                    """
+                    after_rag_prompt = ChatPromptTemplate.from_template(
+                        after_rag_template
+                    )
+                    after_rag_chain = (
+                        {"context": retriever, "question": RunnablePassthrough()}
+                        | after_rag_prompt
+                        | model_local
+                        | StrOutputParser()
+                    )
+
                 content = after_rag_chain.invoke(prompt).replace("\n", "<br>")
-                print("this is the content", content)
+                # print("this is the content", content)
             except Exception as e:
                 print(e)
                 return jsonify(content=e), 404
@@ -1772,9 +2022,7 @@ def vision_ollama():
 
         return jsonify(content=content), 200
 
-    return render_template(
-        "vision_ollama.html", page="LLaVA vision encoder", **locals()
-    )
+    return render_template("vision_ollama.html", page="Vision Model", **locals())
 
 
 @app.route("/video_gallery.html", methods=["POST", "GET"])

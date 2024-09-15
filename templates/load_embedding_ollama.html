@@ -1,76 +1,110 @@
 {% extends "base.html" %} {% block title %}{{ page }}{% endblock %} {% block
   content %}
-  <!-- START MAIN CONTAINER -->
-  <div class="container-fluid">
+<!-- START MAIN CONTAINER -->
+<div class="container-fluid">
     <div class="row">
-      <!-- START SIDENAV -->
-      <div class="side-nav col-lg-3 col-md-12">
-        <!-- START NEW CHAT BUTTON -->
-        <div class="row p-2">
-          <div class="chat-btn d-flex align-items-center">
-            <span class="d-block">{{ page }}</span>
-          </div>
-        </div>
-        <!-- START MODELS -->
-        <div class="row p-2" id="mySelectDiv">
-          <label for="gpt-model" class="form-label">Embeddings</label>
-          {% if collections_from_sql|length > 0 %}
-          <select name="selected_collection" id="selected_collection" class="form-select gpt-model">
-            <option disabled selected value="">Please select</option>
-            {% for collection_item in collections_from_sql %}
-            <option data-uuid="{{collection_item["uuid"]}}" value="{{collection_item["collection_name"]}}">{{collection_item["collection_name"]}}</option>
-            {% endfor %}
-          </select>
-          {% else %}
-          <p>There are no collections.</p>
-          {% endif %}
-        </div>
-          <!-- BOTTOM SIDE COLUMN -->
-        <div class="row p-2" id="delete_collection_div">
-        </div>
-      </div>
-      <!-- START CONTENT -->
-      <div class="content p-0 pt-2 col-lg-9 col-md-12">
-        <div id="list-group" class="chat-content-area"></div>
-        <!-- START CHAT INPUTS -->
-        <div class="chat-input-area overflow-hidden">
-          <div class="row">
-            <div class="col-12 chat-inputs-area-inner">
-              <div class="row chat-inputs-container d-flex align-items-center">
-                <textarea
-                  name="chat-input"
-                  id="chat-input"
-                  class="col-11"
-                  placeholder="Chat with the selected collection"
-                  required
-                ></textarea>
-                <button id="gpt-button" class="col-1 btn btn-primary">
-                  <span
-                    ><i class="bi bi-cursor-fill" aria-hidden="true"></i>
-                  </span>
-                </button>
-              </div>
+        <!-- START SIDENAV -->
+        <div class="side-nav col-lg-3 col-md-12">
+            <!-- START NEW CHAT BUTTON -->
+            <div class="row p-2">
+                <div class="chat-btn d-flex align-items-center">
+                    <span class="d-block">{{ page }}</span>
+                </div>
             </div>
-          </div>
+            <!-- START COLLECTIONS -->
+            <div class="row p-2" id="mySelectDiv">
+                <label for="gpt-model" class="form-label">Embeddings</label>
+                {% if collections_from_sql|length > 0 %}
+                <select name="selected_collection" id="selected_collection" class="form-select gpt-model">
+                    <option disabled selected value="">Please select</option>
+                    {% for collection_item in collections_from_sql %}
+                    <option data-uuid="{{collection_item["uuid"]}}" value="{{collection_item["collection_name"]}}">
+                        {{collection_item["collection_name"]}}</option>
+                    {% endfor %}
+                </select>
+                {% else %}
+                <p>There are no collections.</p>
+                {% endif %}
+            </div>
+            <!-- START MODELS -->
+            <div class="row p-2">
+                <label for="gpt-model-select" class="form-label">Models<small class="d-inline-block">- optional -</small> </label>
+                <select name="gpt-model-select" id="gpt-model-select" class="form-select gpt-model">
+                    {% if model_list %}
+                    <option disabled selected value="">Please select model</option>
+                    {% for models in model_list %}
+                    <option value="{{ models["name"] }}">{{ models["name"] }}</option>
+                    {% endfor %}
+                    {% endif %}
+                </select>
+            </div>
+            <!-- BOTTOM SIDE COLUMN -->
+            <div class="row p-2" id="system_prompt_area">
+                <label for="exampleFormControlTextarea1" class="form-label">System Prompt</label>
+                <textarea placeholder="- Optional -" name="system_prompt" id="system_prompt" rows="5"></textarea>
+                <button id="btn-file-reset-id" class="btn btn-info col-5 no_display" type="button">
+                    Reset
+                </button>
+                &nbsp;
+                <button id="save_system_prompt" class="btn btn-secondary col-5 no_display" type="button">
+                    Save System Prompt
+                </button>
+            </div>
         </div>
-      </div>
+        <!-- START CONTENT -->
+        <div class="content p-0 pt-2 col-lg-9 col-md-12">
+            <div id="list-group" class="chat-content-area"></div>
+            <!-- START CHAT INPUTS -->
+            <div class="chat-input-area overflow-hidden">
+                <div class="row">
+                    <div class="col-12 chat-inputs-area-inner">
+                        <div class="row chat-inputs-container d-flex align-items-center">
+                            <textarea name="chat-input" id="chat-input" class="col-11"
+                                placeholder="Chat with the selected collection" required></textarea>
+                            <button id="gpt-button" class="col-1 btn btn-primary">
+                                <span><i class="bi bi-cursor-fill" aria-hidden="true"></i>
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-  
-  <!-- START EXTERNAL JS RESOURCES -->
-  <script
-    src="https://code.jquery.com/jquery-3.6.3.min.js"
-    integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU="
-    crossorigin="anonymous"
-  ></script>
-     <script>
-    $("#gpt-button").click(function () {
-      // hide delete collection button
-      // $('#delete_collection_div').hide();
-      var question = $("#chat-input").val();
-      var get_selected_collection = $("#selected_collection").val();
-      let html_data = "";
-      html_data += `
+</div>
+
+<!-- START EXTERNAL JS RESOURCES -->
+<script src="https://code.jquery.com/jquery-3.6.3.min.js"
+    integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
+<script>
+    //reset button
+    $("#btn-file-reset-id").on("click", function() {
+        $('#system_prompt').val('')
+    });
+    $("#gpt-button").click(function() {
+        var get_selected_collection = $("#selected_collection").val();
+        if ($('#selected_collection').find('option:selected').attr('disabled')) {
+            // show the error
+            alert("Error; Empty Collection not allowed. A Collection is required!");
+            return false;
+        }
+
+        var question = $("#chat-input").val();
+        if (typeof question !== 'undefined' && question == "") {
+            alert("Error; Empty data not allowed. A prompt is required!");
+            return false;
+        }
+        var system_prompt = $("#system_prompt").val();
+        console.log(system_prompt)
+        // if (!$.trim($("#system_prompt").val())) {
+        //     // textarea is empty or contains only white-space
+        // }
+        var selected_model = $("#gpt-model-select").val();
+        if ($('#gpt-model-select').find('option:selected').attr('disabled')) {
+            selected_model="default";
+        }
+        let html_data = "";
+        html_data += `
                     <div class="row user-chat-box">
                         <div class="chat-icon">
                           <img
@@ -80,20 +114,24 @@
                         </div>
                         <div class="chat-txt">Question: ${question}  </div>
                     </div>`;
-      $("#chat-input").val("");
-      $("#list-group").append(html_data);
-      $.ajax({
-        type: "POST", 
-        url: "{{ url_for('load_embedding_ollama') }}",
-        dataType: 'json',
-        data: {
-          ask_rag:"ask_rag",prompt: question,get_selected_collection:get_selected_collection
-        },
-          success: function (data) {
-          console.log('success')
-          console.log(data.content)
-          let gpt_data = "";
-          gpt_data += `
+        $("#chat-input").val("");
+        $("#list-group").append(html_data);
+        $.ajax({
+            type: "POST",
+            url: "{{ url_for('load_embedding_ollama') }}",
+            dataType: 'json',
+            data: {
+                ask_rag: "ask_rag",
+                prompt: question,
+                get_selected_collection: get_selected_collection,
+                system_prompt: system_prompt,
+                selected_model: selected_model
+            },
+            success: function(data) {
+                console.log('success')
+                console.log(data.content)
+                let gpt_data = "";
+                gpt_data += `
           <div class="row gpt-chat-box">
           <div class="chat-icon">
           <img class="chatgpt-icon" src="{{ url_for('static', filename='images/ollama-icon.jpg') }}" />
@@ -103,14 +141,16 @@
                         </div>
           </div>
                       `;
-          $("#list-group").append(gpt_data);
-        },
-        error: function (jqXHR, textStatus, errorThrown,data) {
-          console.log('error')
-          console.log(textStatus + ": " + jqXHR.status + " " + errorThrown);
-          let gpt_data = "";
-          if (jqXHR.status == 404 || errorThrown == 'Not Found') {
-            gpt_data += `
+                $("#list-group").append(gpt_data);
+                $("#btn-file-reset-id").removeClass("no_display")
+                $("#save_system_prompt").removeClass("no_display")
+            },
+            error: function(jqXHR, textStatus, errorThrown, data) {
+                console.log('error')
+                console.log(textStatus + ": " + jqXHR.status + " " + errorThrown);
+                let gpt_data = "";
+                if (jqXHR.status == 404 || errorThrown == 'Not Found') {
+                    gpt_data += `
                     <!-- START GPT CHAT -->
                       <div class="row gpt-chat-box">
                         <div class="chat-icon">
@@ -124,8 +164,8 @@
                         </div>
                       </div>
                       `;
-          } else {
-            gpt_data += `
+                } else {
+                    gpt_data += `
                     <!-- START GPT CHAT -->
                       <div class="row gpt-chat-box">
                         <div class="chat-icon">
@@ -138,11 +178,42 @@
                         </div>
                       </div>
                       `;
-          }
-          $("#list-group").append(gpt_data);
-        },
-      });
+                }
+                $("#list-group").append(gpt_data);
+                $("#btn-file-reset-id").removeClass("no_display")
+                $("#save_system_prompt").removeClass("no_display")
+            },
+        });
     });
-  </script>
-  {% endblock %}
-  
+    $("#save_system_prompt").click(function() {
+        var system_prompt = $("#system_prompt").val();
+        console.log(system_prompt)
+        if (!$.trim($("#system_prompt").val())) {
+            // textarea is empty or contains only white-space
+            // show the error
+            alert("Error; Unable to save system prompt. Verify input!");
+            return false;
+        }
+        $.ajax({
+            type: "POST",
+            url: "{{ url_for('load_embedding_ollama') }}",
+            dataType: 'json',
+            data: {
+                save_system_prompt: "save_system_prompt",
+                system_prompt: system_prompt
+            },
+            success: function(data) {
+                console.log('success')
+                alert("Success; System prompt saved.!");
+                $("#save_system_prompt").addClass("no_display")
+            },
+            error: function(jqXHR, textStatus, errorThrown, data) {
+                console.log('error')
+                console.log(textStatus + ": " + jqXHR.status + " " + errorThrown);
+                alert("Error; System prompt NOT saved.!");
+                $("#save_system_prompt").removeClass("no_display")
+            },
+        });
+    });
+</script>
+{% endblock %}

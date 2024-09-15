@@ -39,7 +39,8 @@
     "Embedding Ollama" and page != "chroma_ingest" and page !="Load-Embedding"
     and page != "Ollama Chatbot History" and page != "chroma_ingest_semantic" 
     and page != "Ollama Function Call"
-    and page != "Ollama Function Call v2" %}
+    and page != "Ollama Function Call v2"
+    and page != "Chunking Strategies" %}
     <style>
       * {
         font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace !important;
@@ -433,6 +434,7 @@
                       >Ollama Chatbot History</a
                     >
                   </li>
+                  <hr class="dropdown-divider" />
                   <li>
                     <a
                       class="dropdown-item"
@@ -447,6 +449,7 @@
                       >Ollama Function Call v2</a
                     >
                   </li>
+                  <hr class="dropdown-divider" />
                   <li>
                     <a
                       class="dropdown-item"
@@ -605,6 +608,13 @@
                       class="dropdown-item"
                       href="{{url_for('chroma_ingest') }}"
                       >Chroma: Ingest</a
+                    >
+                  </li>
+                  <li>
+                    <a
+                      class="dropdown-item"
+                      href="{{url_for('chunking_strategies') }}"
+                      >Chunking Strategies</a
                     >
                   </li>
                   <li>

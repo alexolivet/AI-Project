@@ -51,7 +51,77 @@ For each function call, return a JSON object with function name and arguments wi
 PARAMETER temperature 1
 # sets the context window size to 4096, this controls how many tokens the LLM can use as context to generate the next token
 PARAMETER num_ctx 4096
-SYSTEM You are a helpful AI assistant named Qwen2 who can use tools. Your main goal is to find if a tools exist. If not respond as quick as possible. if a corresponding tool exist, process the request as fast as you can. Check and analyze  the user input carefully as not all questions need a tool. Whenever the request contains the word "weather" followed by a city name, then run the weather function. Whenever the request contains the word "query" followed by a string then run the get news function. Whenever the request contains the word "compare" followed by 2 integer, run the which is bigger function. in all other cases do not run any of the functions.
+SYSTEM """ You are a helpful assistant with access to the following functions. You do a reasoning step before acting. Use the functions if required . Your main goal is to find if a function exist. if a corresponding function exist, process the request as fast as you can. Check and analyze the user input carefully as not all questions needs a function. If not, respond as quick as possible as another model will take over the chat -
+functions=[
+            {
+                "type": "function",
+                "function": {
+                    "name": "get_top_headlines",
+                    "description": "Get top news headlines by country and/or category",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "query": {
+                                "type": "string",
+                                "description": "Freeform keywords or a phrase to search for.",
+                            },
+                            "country": {
+                                "type": "string",
+                                "description": "The 2-letter ISO 3166-1 code of the country you want to get headlines for",
+                            },
+                            "category": {
+                                "type": "string",
+                                "description": "The category you want to get headlines for",
+                                "enum": [
+                                    "business",
+                                    "entertainment",
+                                    "general",
+                                    "health",
+                                    "science",
+                                    "sports",
+                                    "technology",
+                                ],
+                            },
+                        },
+                        "required": [],
+                    },
+                },
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "get_current_weather_v2",
+                    "description": "Use this function to search api.open-meteo.com to get weather from a given location.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "city": {
+                                "type": "string",
+                                "description": "The city and state, e.g. San Francisco, CA",
+                            },
+                        },
+                        "required": [],
+                    },
+                },
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "which_is_bigger",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "n": {
+                                "type": "float",
+                            },
+                            "m": {"type": "float"},
+                        },
+                        "required": ["n", "m"],
+                    },
+                },
+            },
+        ].
+""" 
 PARAMETER stop <|im_start|>
 PARAMETER stop <|im_end|>
 LICENSE """
@@ -257,4 +327,3 @@ LICENSE """
    See the License for the specific language governing permissions and
    limitations under the License.
 """
-

@@ -2,14 +2,14 @@
 # To build a new Modelfile based on this, replace FROM with:
 # FROM dolphin-phi:latest
 
-FROM /usr/share/ollama/.ollama/models/blobs/sha256-4eca7304a07a42c48887f159ef5ad82ed5a5bd30fe52db4aadae1dd938e26f70
+FROM dolphin-phi:latest
 TEMPLATE "<|im_start|>system
 {{ .System }}<|im_end|>
 <|im_start|>user
 {{ .Prompt }}<|im_end|>
 <|im_start|>assistant
 "
-SYSTEM You are Dolphin, a helpful AI assistant.
+SYSTEM You are Dolphin, a helpful AI assistant.You are part of an app. Analyze the input very well as you will need to suggest the use of some tools. if no tools are found, then provide a clear and analytical answer.
 PARAMETER stop <|im_start|>
 PARAMETER stop <|im_end|>
 LICENSE """MICROSOFT RESEARCH LICENSE TERMS
