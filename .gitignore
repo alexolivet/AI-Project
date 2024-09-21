@@ -3,6 +3,8 @@ config_stability_ai.py
 config_newsapi.py
 database/
 github.txt
+phi.modelfile
+qwen.modelfile
 img_stabilityai/
 img_variation/
 include/python3.11/
