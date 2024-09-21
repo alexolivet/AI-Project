@@ -1988,6 +1988,26 @@ def imagevariation_v2():
     return render_template("imagevariation_v2.html", page="Image Variation", **locals())
 
 
+@app.route("/vision_ollama_v2.html", methods=["POST", "GET"])
+def vision_ollama_v2():
+    if request.method == "POST":
+        prompt = request.form["prompt"]
+        try:
+            # image data
+            blobUpload = request.form["image"]
+            response = vision_with_ollama(blobUpload, prompt)
+            # contentToAjax = response
+            print("image response")
+            content = response
+        except Exception as e:
+            print(e)
+            content = f"Oops something went wrong.: {e}"
+
+        return jsonify(content=content), 200
+
+    return render_template("vision_ollama_v2.html", page="Vision Model", **locals())
+
+
 @app.route("/vision_ollama.html", methods=["POST", "GET"])
 def vision_ollama():
     image_names = os.listdir(IMG_FOLDER)
@@ -2036,6 +2056,40 @@ def video_gallery():
         video_path.append(abs_file_path)
 
     return render_template("video_gallery.html", page="Video Gallery", **locals())
+
+
+@app.route("/img_generation.html", methods=["POST", "GET"])
+def img_generation():
+    if request.method == "POST":
+        prompt = request.form["prompt"]
+        try:
+            response = requests.post(
+                f"https://api.stability.ai/v2beta/stable-image/generate/ultra",
+                headers={
+                    "Accept": "application/json",
+                    "Authorization": f"Bearer {api_key_stability}",
+                    "accept": "image/*",
+                },
+                files={"none": ""},
+                data={
+                    "prompt": prompt,
+                    "output_format": "png",
+                },
+            )
+            if response.status_code == 200:
+                with open("static/img_generation/img_generation.png", "wb") as file:
+                    file.write(response.content)
+                    content = "img_generation.png"
+                    return jsonify(content=content), 200
+            else:
+                raise Exception(str(response.json()))
+        except Exception as e:
+            print(e)
+            content = f"Oops something went wrong.: {response.text}"
+            # raise Exception("Non-200 response: " + str(response.text))
+
+        return jsonify(content=content), 200
+    return render_template("img_generation.html", page="Image generation", **locals())
 
 
 @app.route("/imgvar_stabilityai.html", methods=["POST", "GET"])

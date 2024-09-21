@@ -1,0 +1,178 @@
+{% extends "base.html" %} {% block title %}{{page}}{% endblock %} {% block
+    content %}
+<!-- START MAIN CONTAINER -->
+<div class="container">
+    <div class="row">
+        <!-- START SIDENAV -->
+        <div class="side-nav col-lg-3 col-md-12">
+            <!-- START NEW CHAT BUTTON -->
+            <div class="row p-2">
+                <div class="chat-btn d-flex align-items-center">
+                    <button class="btn collapseAll" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+                        {{ page }}
+                    </button>
+                </div>
+            </div>
+            <!-- START MODELS -->
+            <div class="row p-2">
+                <label for="model_stability_ai" class="form-label">Visual</label>
+                <button id="gpt-button-image" class="btn btn-primary attach-button">
+                    <span><i class="bi bi-image" aria-hidden="true" title="Submit a picture"></i>
+                    </span>
+                    Submit a picture
+                </button>
+                <input accept="image/*" type='file' id="imgInp" class="input-file no_display" />
+            </div>
+            <br />
+            <div class="row p-2">
+                <!-- START SETTINGS -->
+                <!-- <ul class="list-unstyled">
+                  <li class="nav-item">
+                    <button
+                      type="submit"
+                      id="modelEditStabilityAi"
+                      name="modelEditStabilityAi"
+                      class="btn btn-primary"
+                    >
+                      Change Model
+                    </button>
+                  </li>
+                  <li class="nav-item">
+                    <a
+                      class="nav-link collapseAll"
+                      data-bs-toggle="collapse"
+                      href="#accountCredit"
+                      role="button"
+                      aria-expanded="false"
+                      aria-controls="collapseExample"
+                    >
+                      <i class="bi bi-wrench"></i> Account & Credit
+                    </a>
+                  </li>
+                </ul> -->
+            </div>
+        </div>
+
+        <!-- START CONTENT -->
+        <div class="content p-0 pt-2 col-lg-9 col-md-12">
+            <div class="chat-content-area-image">
+                <!-- START USER CHAT -->
+                <div class="row user-chat-box">
+                    <div class="chat-txt">
+                        <div class="row align-items-start">
+                            <div class="col">
+                         
+                                <img id="blah" src="#" alt="your image" class="img-fluid no_display" />
+                                <button id="btn-file-reset-id" class="btn btn-info no_display" type="button">
+                                    Reset file
+                                </button>
+                      
+                            </div>
+                            <div class="col">
+                                <!-- <input type="text" 
+                    class="form-control" 
+                    placeholder="Ask llava:7b"
+                    name="question"
+                    id="question"> -->
+                                <textarea class="form-control" placeholder="Ask llava:7b" id="question"
+                                    rows="3"></textarea>
+                                <br />
+                                <button id="gpt-button" type="submit" class="btn btn-primary btn-sm">
+                                    Chat with Vision encoder
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div id="list-group"></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- START GPT CHAT -->
+            </div>
+            <!-- START CHAT INPUTS -->
+        </div>
+    </div>
+</div>
+<!-- START EXTERNAL JS RESOURCES -->
+<script src="https://code.jquery.com/jquery-3.6.3.min.js"
+    integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous">
+</script>
+<script>
+    var blob = " "; //blob is global
+    var attachButton = document.querySelector('.attach-button');
+    attachButton.addEventListener('click', e => {
+        $('#imgInp').trigger("click")
+        imgInp.onchange = evt => {
+            const [file] = imgInp.files
+            if (file) {
+                blah.src = URL.createObjectURL(file)
+                var reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = function(e) {
+                    // browser completed reading file - display it
+                    // alert(e.target.result);
+                    blob = e.target.result;
+                }
+                $("#blah").removeClass("no_display")
+                $("#btn-file-reset-id").removeClass("no_display")
+            }
+
+        }
+    });
+    //reset button
+    $("#btn-file-reset-id").on("click", function() {
+        $("#blah").attr('src', '');
+        $("#blah").addClass("no_display");
+        $("#btn-file-reset-id").addClass("no_display");
+    });
+
+    $("#gpt-button").click(function() {
+      $("#list-group").html("");
+        var question = $("#question").val();
+        if (typeof question !== 'undefined' && question == "") {
+            alert("Error; Empty data not allowed. A prompt is required!");
+            return false;
+        }
+
+        if (typeof blob !== 'undefined' && blob !== " " && !$("#blah").hasClass("no_display")) {
+            var image = blob;
+            console.log(image)
+            data = {
+                prompt: question,
+                image: image
+            };
+        } else {
+
+            console.log("undefined image")
+            data = {
+                prompt: question
+            };
+        }
+        $.ajax({
+            type: "POST",
+            dataType: "json",
+            url: "{{ url_for('vision_ollama_v2') }}",
+            data: data,
+            success: function(data) {
+                console.log("succcess");
+                console.log(data.content);
+
+                let gpt_data = "";
+                gpt_data += `
+                <p>${data.content}</p>
+                  `;
+                
+                $("#list-group").append(gpt_data);
+            },
+            error: function(data) {
+                console.log("failed");
+                let gpt_data = "";
+                gpt_data += `
+                <p>${data.content}</p>
+                  `;
+            },
+        });
+    });
+</script>
+{% endblock %}

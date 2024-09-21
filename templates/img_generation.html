@@ -1,0 +1,112 @@
+{% extends "base.html" %} {% block title %}{{page}}{% endblock %} {% block
+    content %}
+<!-- START MAIN CONTAINER -->
+<div class="container">
+    <div class="row">
+        <!-- START SIDENAV -->
+        <div class="side-nav col-lg-3 col-md-12">
+            <!-- START NEW CHAT BUTTON -->
+            <div class="row p-2">
+                <div class="chat-btn d-flex align-items-center">
+                    <button class="btn collapseAll" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+                        {{ page }}
+                    </button>
+                </div>
+            </div>
+            <!-- START MODELS -->
+            <div class="row p-2">
+                <div class="col">
+                    <textarea class="form-control" placeholder="Ask StabilityAi" id="question" rows="3"></textarea>
+                    <br />
+                    <button id="gpt-button" type="submit" class="btn btn-primary btn-sm">
+                        Chat with Vision encoder
+                    </button>
+                </div>
+                <!-- START SETTINGS -->
+                <!-- <ul class="list-unstyled">
+                  <li class="nav-item">
+                    <button
+                      type="submit"
+                      id="modelEditStabilityAi"
+                      name="modelEditStabilityAi"
+                      class="btn btn-primary"
+                    >
+                      Change Model
+                    </button>
+                  </li>
+                  <li class="nav-item">
+                    <a
+                      class="nav-link collapseAll"
+                      data-bs-toggle="collapse"
+                      href="#accountCredit"
+                      role="button"
+                      aria-expanded="false"
+                      aria-controls="collapseExample"
+                    >
+                      <i class="bi bi-wrench"></i> Account & Credit
+                    </a>
+                  </li>
+                </ul> -->
+            </div>
+        </div>
+        <!-- START CONTENT -->
+        <div class="content p-0 pt-2 col-lg-9 col-md-12">
+            <div class="chat-content-area-image">
+                <!-- START USER CHAT -->
+                <div class="row user-chat-box">
+                    <div class="chat-txt">
+                        <div class="row align-items-start">
+                        </div>
+                        <div class="col">
+                            <div id="list-group"></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- START GPT CHAT -->
+            </div>
+            <!-- START CHAT INPUTS -->
+        </div>
+    </div>
+</div>
+<!-- START EXTERNAL JS RESOURCES -->
+<script src="https://code.jquery.com/jquery-3.6.3.min.js"
+    integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous">
+</script>
+<script>
+    $("#gpt-button").click(function() {
+        $("#list-group").html("");
+        var question = $("#question").val();
+        if (typeof question !== 'undefined' && question == "") {
+            alert("Error; Empty data not allowed. A prompt is required!");
+            return false;
+        }
+        $.ajax({
+            type: "POST",
+            dataType: "json",
+            url: "{{ url_for('img_generation') }}",
+            data: {
+                prompt: question,
+            },
+            success: function(data) {
+                console.log("succcess");
+                console.log(data.content);
+
+                let gpt_data = "";
+                gpt_data += `
+                <img src="static/img_generation/${data.content}" alt="AI generated image">
+                  `;
+
+                $("#list-group").append(gpt_data);
+            },
+            error: function(data) {
+                console.log("failed");
+                let gpt_data = "";
+                gpt_data += `
+                <p>${data.content}</p>
+                  `;
+            },
+        });
+    });
+</script>
+{% endblock %}

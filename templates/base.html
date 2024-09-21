@@ -1,40 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+
+<head>
     <meta charset="utf-8" />
     <meta http-equiv="x-ua-compatible" content="ie=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="author" content="Alejandro Olivet Fernande aka elwebman" />
-    <meta
-      name="description"
-      content="Demonstration of ChatGPT API in a Python Flask Application."
-    />
+    <meta name="description" content="Demonstration of ChatGPT API in a Python Flask Application." />
     <title>{{page}}</title>
-    <link
-      rel="shortcut icon"
-      type="image/x-icon"
-      href="{{ url_for('static', filename='images/favicon.png') }}"
-    />
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD"
-      crossorigin="anonymous"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/0.9.13/css/bootstrap-multiselect.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.5/css/select2.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.2/font/bootstrap-icons.css"
-      integrity="sha384-b6lVK+yci+bfDmaY1u0zE8YYJt0TZxLEAFyYSLHId4xoVvsrQu3INevFKo+Xir8e"
-      crossorigin="anonymous"
-    />
+    <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.png') }}" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous" />
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/0.9.13/css/bootstrap-multiselect.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.5/css/select2.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.2/font/bootstrap-icons.css"
+        integrity="sha384-b6lVK+yci+bfDmaY1u0zE8YYJt0TZxLEAFyYSLHId4xoVvsrQu3INevFKo+Xir8e" crossorigin="anonymous" />
     {% if page != "Chatbot project v2" and page != "Chatbot Ollama" and page !=
     "Embedding Ollama" and page != "chroma_ingest" and page !="Load-Embedding"
     and page != "Ollama Chatbot History" and page != "chroma_ingest_semantic" 
@@ -42,733 +23,620 @@
     and page != "Ollama Function Call v2"
     and page != "Chunking Strategies" %}
     <style>
-      * {
-        font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace !important;
-      }
-
-      .js-copytextarea {
-        opacity: 0.01;
-        height: 0;
-        position: absolute;
-        z-index: -1;
-      }
-
-      .js-copytextarea_new {
-        height: 0;
-        z-index: -1;
-      }
-
-      .custom_list_item {
-        display: inline;
-        text-align: center;
-      }
-
-      .selectable {
-        user-select: all;
-      }
-
-      mark {
-        padding: 0;
-        background: #2e7d00;
-        color: #fff;
-      }
-
-      .cursor-pointer {
-        cursor: pointer;
-        color: #42a5f5;
-      }
-
-      .pic {
-        margin-top: 30px;
-        margin-bottom: 20px;
-      }
-
-      .card-block {
-        width: 200px;
-        border: 1px solid lightgrey;
-        border-radius: 5px !important;
-        background-color: #fafafa;
-        margin-bottom: 30px;
-      }
-
-      .card-body.show {
-        display: block;
-      }
-
-      .card {
-        padding-bottom: 20px;
-        box-shadow: 2px 2px 6px 0px rgb(200, 167, 216);
-      }
-
-      .radio {
-        display: inline-block;
-        border-radius: 0;
-        box-sizing: border-box;
-        cursor: pointer;
-        color: #000;
-        font-weight: 500;
-        -webkit-filter: grayscale(100%);
-        -moz-filter: grayscale(100%);
-        -o-filter: grayscale(100%);
-        -ms-filter: grayscale(100%);
-        filter: grayscale(100%);
-      }
-
-      .radio:hover {
-        box-shadow: 2px 2px 2px 2px rgba(0, 0, 0, 0.1);
-      }
-
-      .radio.selected {
-        box-shadow: 0px 8px 16px 0px #eeeeee;
-        -webkit-filter: grayscale(0%);
-        -moz-filter: grayscale(0%);
-        -o-filter: grayscale(0%);
-        -ms-filter: grayscale(0%);
-        filter: grayscale(0%);
-      }
-
-      .selected {
-        background-color: #e0f2f1;
-      }
-
-      .a {
-        justify-content: center !important;
-      }
-
-      .btn {
-        border-radius: 0px;
-      }
-
-      .btn,
-      .btn:focus,
-      .btn:active {
-        outline: none !important;
-        box-shadow: none !important;
-      }
-
-      .text-truncate {
-        -webkit-line-clamp: 3;
-        display: -webkit-box;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-      }
-      pre {
-        white-space: pre-wrap;
-        overflow-x: auto;
-        display: block;
-        unicode-bidi: embed;
-      }
-
-      .side-nav {
-        margin: 0px;
-        overflow: auto;
-        height: 95vh;
-      }
-
-      .chat-btn {
-        border: 1px solid rgb(96, 95, 95);
-        height: 40px;
-        border-radius: 5px;
-      }
-
-      input[type="range"] {
-        width: 80%;
-      }
-
-      input[type="range"]::-webkit-slider-runnable-track {
-        height: 3px;
-        margin: 10px 0;
-        width: 100%;
-        background: #000000;
-      }
-
-      input[type="range"]::-webkit-slider-thumb {
-        box-shadow: 0px 0px 0px #000000;
-        border: 1px solid #010000;
-        height: 18px;
-        width: 18px;
-        border-radius: 25px;
-        background: #ffffff;
-        cursor: pointer;
-        -webkit-appearance: none;
-        margin-top: -7px;
-      }
-
-      .side-nav ul {
-        list-style: none;
-        padding: 0;
-        margin-top: 20px;
-      }
-
-      .side-nav li {
-        padding: 10px;
-        cursor: pointer;
-      }
-
-      .side-nav li:hover {
-        background-color: #495057;
-      }
-
-      .side-nav i {
-        margin-right: 10px;
-      }
-
-      .form-select {
-        border: 1px solid rgb(96, 95, 95);
-        height: 40px;
-        border-radius: 5px;
-      }
-
-      small {
-        font-size: 11px;
-        padding: 12px;
-        display: block;
-      }
-
-      .chatgpt-icon {
-        width: 40px;
-      }
-
-      .user-chat-box {
-        padding: 20px;
-        padding-left: 150px;
-      }
-
-      .chat-content-area {
-        overflow: auto;
-        height: 500px;
-        overflow-x: hidden;
-      }
-
-      .chat-content-area-image {
-        overflow: auto;
-        height: auto;
-        overflow-x: hidden;
-      }
-
-      .chat-inputs-container {
-        background-color: #40414f;
-        padding: 5px;
-        border-radius: 5px;
-      }
-
-      .chat-inputs-container textarea {
-        outline: none;
-        border: none;
-        resize: none;
-      }
-
-      .chat-inputs-area-inner {
-        padding-top: 30px;
-        padding-left: 150px;
-        padding-right: 150px;
-      }
-
-      .gpt-chat-box {
-        padding: 20px;
-        padding-left: 150px;
-        color: #000000;
-      }
-
-      .chat-icon {
-        width: 15%;
-        margin: 0;
-        padding: 0;
-      }
-
-      .chat-txt {
-        width: 85%;
-        margin: 0;
-        padding: 0;
-      }
-
-      img {
-        max-width: 100%;
-      }
-
-      video {
-        max-width: 100%;
-      }
-
-      .pics {
-        padding: auto;
-        border-radius: 2px;
-        box-shadow: 0px 0px 13px rgba(0, 0, 0, 0.05);
-      }
-
-      .thumbs {
-        float: left;
-        width: 122px;
-        padding-right: 10px;
-      }
-      .preview {
-        width: 112px;
-        height: 112px;
-        overflow: hidden;
-        margin-bottom: 10px;
-      }
-      .preview:last-child {
-        margin-bottom: 0;
-      }
-      .full {
-        width: auto;
-        font-size: 12px;
-        float: left;
-      }
-      .full,
-      .full img {
-        height: auto;
-      }
-      .full video {
-        height: auto;
-      }
-      .full video:hover {
-        cursor: pointer;
-      }
-      .full img:hover {
-        cursor: pointer;
-      }
-      ::-webkit-scrollbar {
-        width: 12px;
-      }
-
-      /* Track */
-      ::-webkit-scrollbar-track {
-        -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
-        -webkit-border-radius: 10px;
-        border-radius: 10px;
-      }
-
-      /* Handle */
-      ::-webkit-scrollbar-thumb {
-        -webkit-border-radius: 10px;
-        border-radius: 10px;
-        background: #565869;
-        -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
-      }
-
-      @media only screen and (max-width: 768px) {
-        .user-chat-box {
-          padding-left: 20px;
+        * {
+            font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace !important;
         }
 
-        .gpt-chat-box {
-          padding-left: 20px;
+        .js-copytextarea {
+            opacity: 0.01;
+            height: 0;
+            position: absolute;
+            z-index: -1;
+        }
+
+        .js-copytextarea_new {
+            height: 0;
+            z-index: -1;
+        }
+
+        .custom_list_item {
+            display: inline;
+            text-align: center;
+        }
+
+        .selectable {
+            user-select: all;
+        }
+
+        mark {
+            padding: 0;
+            background: #2e7d00;
+            color: #fff;
+        }
+
+        .cursor-pointer {
+            cursor: pointer;
+            color: #42a5f5;
+        }
+
+        .pic {
+            margin-top: 30px;
+            margin-bottom: 20px;
+        }
+
+        .no_display {
+            display: none;
+
+        }
+
+        .card-block {
+            width: 200px;
+            border: 1px solid lightgrey;
+            border-radius: 5px !important;
+            background-color: #fafafa;
+            margin-bottom: 30px;
+        }
+
+        .card-body.show {
+            display: block;
+        }
+
+        .card {
+            padding-bottom: 20px;
+            box-shadow: 2px 2px 6px 0px rgb(200, 167, 216);
+        }
+
+        .radio {
+            display: inline-block;
+            border-radius: 0;
+            box-sizing: border-box;
+            cursor: pointer;
+            color: #000;
+            font-weight: 500;
+            -webkit-filter: grayscale(100%);
+            -moz-filter: grayscale(100%);
+            -o-filter: grayscale(100%);
+            -ms-filter: grayscale(100%);
+            filter: grayscale(100%);
+        }
+
+        .radio:hover {
+            box-shadow: 2px 2px 2px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .radio.selected {
+            box-shadow: 0px 8px 16px 0px #eeeeee;
+            -webkit-filter: grayscale(0%);
+            -moz-filter: grayscale(0%);
+            -o-filter: grayscale(0%);
+            -ms-filter: grayscale(0%);
+            filter: grayscale(0%);
+        }
+
+        .selected {
+            background-color: #e0f2f1;
+        }
+
+        .a {
+            justify-content: center !important;
+        }
+
+        .btn {
+            border-radius: 0px;
+        }
+
+        .btn,
+        .btn:focus,
+        .btn:active {
+            outline: none !important;
+            box-shadow: none !important;
+        }
+
+        .text-truncate {
+            -webkit-line-clamp: 3;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        pre {
+            white-space: pre-wrap;
+            overflow-x: auto;
+            display: block;
+            unicode-bidi: embed;
+        }
+
+        .side-nav {
+            margin: 0px;
+            overflow: auto;
+            height: 95vh;
+        }
+
+        .chat-btn {
+            border: 1px solid rgb(96, 95, 95);
+            height: 40px;
+            border-radius: 5px;
+        }
+
+        input[type="range"] {
+            width: 80%;
+        }
+
+        input[type="range"]::-webkit-slider-runnable-track {
+            height: 3px;
+            margin: 10px 0;
+            width: 100%;
+            background: #000000;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            box-shadow: 0px 0px 0px #000000;
+            border: 1px solid #010000;
+            height: 18px;
+            width: 18px;
+            border-radius: 25px;
+            background: #ffffff;
+            cursor: pointer;
+            -webkit-appearance: none;
+            margin-top: -7px;
+        }
+
+        .side-nav ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+
+        .side-nav li {
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .side-nav li:hover {
+            background-color: #495057;
+        }
+
+        .side-nav i {
+            margin-right: 10px;
+        }
+
+        .form-select {
+            border: 1px solid rgb(96, 95, 95);
+            height: 40px;
+            border-radius: 5px;
+        }
+
+        small {
+            font-size: 11px;
+            padding: 12px;
+            display: block;
+        }
+
+        .chatgpt-icon {
+            width: 40px;
+        }
+
+        .user-chat-box {
+            padding: 20px;
+            padding-left: 150px;
+        }
+
+        .chat-content-area {
+            overflow: auto;
+            height: 500px;
+            overflow-x: hidden;
+        }
+
+        .chat-content-area-image {
+            overflow: auto;
+            height: auto;
+            overflow-x: hidden;
+        }
+
+        .chat-inputs-container {
+            background-color: #40414f;
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        .chat-inputs-container textarea {
+            outline: none;
+            border: none;
+            resize: none;
         }
 
         .chat-inputs-area-inner {
-          padding-left: 50px;
-          padding-right: 54px;
-          margin-bottom: 30px;
+            padding-top: 30px;
+            padding-left: 150px;
+            padding-right: 150px;
         }
-      }
+
+        .gpt-chat-box {
+            padding: 20px;
+            padding-left: 150px;
+            color: #000000;
+        }
+
+        .chat-icon {
+            width: 15%;
+            margin: 0;
+            padding: 0;
+        }
+
+        .chat-txt {
+            width: 85%;
+            margin: 0;
+            padding: 0;
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        video {
+            max-width: 100%;
+        }
+
+        .pics {
+            padding: auto;
+            border-radius: 2px;
+            box-shadow: 0px 0px 13px rgba(0, 0, 0, 0.05);
+        }
+
+        .thumbs {
+            float: left;
+            width: 122px;
+            padding-right: 10px;
+        }
+
+        .preview {
+            width: 112px;
+            height: 112px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .preview:last-child {
+            margin-bottom: 0;
+        }
+
+        .full {
+            width: auto;
+            font-size: 12px;
+            float: left;
+        }
+
+        .full,
+        .full img {
+            height: auto;
+        }
+
+        .full video {
+            height: auto;
+        }
+
+        .full video:hover {
+            cursor: pointer;
+        }
+
+        .full img:hover {
+            cursor: pointer;
+        }
+
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        /* Track */
+        ::-webkit-scrollbar-track {
+            -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+            -webkit-border-radius: 10px;
+            border-radius: 10px;
+        }
+
+        /* Handle */
+        ::-webkit-scrollbar-thumb {
+            -webkit-border-radius: 10px;
+            border-radius: 10px;
+            background: #565869;
+            -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
+        }
+
+        @media only screen and (max-width: 768px) {
+            .user-chat-box {
+                padding-left: 20px;
+            }
+
+            .gpt-chat-box {
+                padding-left: 20px;
+            }
+
+            .chat-inputs-area-inner {
+                padding-left: 50px;
+                padding-right: 54px;
+                margin-bottom: 30px;
+            }
+        }
     </style>
     {% else %}
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='css/style_new.css') }}"
-    />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style_new.css') }}" />
     {% endif %}
-  </head>
+</head>
 
-  <body>
+<body>
     <header>
-      <nav class="navbar navbar-expand-lg bg-body-tertiary">
-        <div class="container-fluid">
-          <a class="navbar-brand" href="{{url_for('index') }}">
-            <img
-              src="static/images/favicon.png"
-              alt="elwebman logo"
-              width="32"
-              height="32"
-            />
-          </a>
-          <button
-            class="navbar-toggler"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#navbarSupportedContent"
-            aria-controls="navbarSupportedContent"
-            aria-expanded="false"
-            aria-label="Toggle navigation"
-          >
-            <span class="navbar-toggler-icon"></span>
-          </button>
-          <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-              <li class="nav-item">
-                <a
-                  class="nav-link active"
-                  aria-current="page"
-                  href="{{url_for('index') }}"
-                  >Home</a
-                >
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="{{url_for('chatbot_v2') }}"
-                  >Chatbot v2</a
-                >
-              </li>
-              <li class="nav-item dropdown">
-                <a
-                  class="nav-link dropdown-toggle"
-                  href="#"
-                  role="button"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                >
-                  Ollama
+        <nav class="navbar navbar-expand-lg bg-body-tertiary">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="{{url_for('index') }}">
+                    <img src="static/images/favicon.png" alt="elwebman logo" width="32" height="32" />
                 </a>
-                <ul class="dropdown-menu">
-                  <li>
-                    <a
-                      class="dropdown-item"
-                      href="{{url_for('chatbot_ollama') }}"
-                      >Ollama Chatbot</a
-                    >
-                  </li>
-                  <li>
-                    <a
-                      class="dropdown-item"
-                      href="{{url_for('ollama_chat_history') }}"
-                      >Ollama Chatbot History</a
-                    >
-                  </li>
-                  <hr class="dropdown-divider" />
-                  <li>
-                    <a
-                      class="dropdown-item"
-                      href="{{url_for('ollama_function_call') }}"
-                      >Ollama Function Call</a
-                    >
-                  </li>
-                  <li>
-                    <a
-                      class="dropdown-item"
-                      href="{{url_for('ollama_function_call_v2') }}"
-                      >Ollama Function Call v2</a
-                    >
-                  </li>
-                  <hr class="dropdown-divider" />
-                  <li>
-                    <a
-                      class="dropdown-item"
-                      href="{{url_for('embedding_ollama') }}"
-                      >Ollama Embeddings</a
-                    >
-                  </li>
-                  <li>
-                    <a
-                      class="dropdown-item"
-                      href="{{url_for('load_embedding_ollama') }}"
-                      >Loaded embeddings</a
-                    >
-                  </li>
-                  <li>
-                    <hr class="dropdown-divider" />
-                  </li>
-                  <li><a class="dropdown-item" href="#">tba</a></li>
-                </ul>
-              </li>
-              <li class="nav-item dropdown">
-                <a
-                  class="nav-link dropdown-toggle"
-                  href="#"
-                  role="button"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                >
-                  Images
-                </a>
-                <ul class="dropdown-menu">
-                  <li>
-                    <a class="dropdown-item" href="{{url_for('chatbotimage') }}"
-                      >DALL·E</a
-                    >
-                  </li>
-                  <li>
-                    <a
-                      class="dropdown-item"
-                      href="{{url_for('imagevariation') }}"
-                      >Variation dall-e-2</a
-                    >
-                  </li>
-                  <li>
-                    <a
-                      class="dropdown-item"
-                      href="{{url_for('imagevariation_v2') }}"
-                      >Variation dall-e-2 V2</a
-                    >
-                  </li>
-                  <li>
-                    <a
-                      class="dropdown-item"
-                      href="{{url_for('imgvar_stabilityai_v2') }}"
-                      >Variation Stability_ai v2</a
-                    >
-                  </li>
-                  <li>
-                    <a
-                      class="dropdown-item"
-                      href="{{url_for('vision_ollama') }}"
-                      >LLaVA vision encoder</a
-                    >
-                  </li>
-                  <li>
-                    <hr class="dropdown-divider" />
-                  </li>
-                  <li><a class="dropdown-item" href="#">tba</a></li>
-                </ul>
-              </li>
-              <li class="nav-item dropdown">
-                <a
-                  class="nav-link dropdown-toggle"
-                  href="#"
-                  role="button"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                >
-                  Video
-                </a>
-                <ul class="dropdown-menu">
-                  <li>
-                    <a
-                      class="dropdown-item"
-                      href="{{url_for('imageToVideo_stabilityai') }}"
-                      >Image to Video (beta)</a
-                    >
-                  </li>
-                  <li>
-                    <hr class="dropdown-divider" />
-                  </li>
-                  <li>
-                    <a
-                      class="dropdown-item"
-                      href="{{url_for('video_gallery') }}"
-                      >Video Gallery</a
-                    >
-                  </li>
-                </ul>
-              </li>
-              <li class="nav-item dropdown">
-                <a
-                  class="nav-link dropdown-toggle"
-                  href="#"
-                  role="button"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                >
-                  Setup Engines
-                </a>
-                <ul class="dropdown-menu">
-                  <li>
-                    <a class="dropdown-item" href="{{url_for('setup_v2') }}"
-                      >Setup Gpt v2</a
-                    >
-                  </li>
-                  <li>
-                    <a
-                      class="dropdown-item"
-                      href="{{url_for('setup_stabilityaiv2') }}"
-                      >Setup Stability AI v2</a
-                    >
-                  </li>
-                  <li>
-                    <hr class="dropdown-divider" />
-                  </li>
-                  <li><a class="dropdown-item" href="#">tba</a></li>
-                </ul>
-              </li>
-              <li class="nav-item dropdown">
-                <a
-                  class="nav-link dropdown-toggle"
-                  href="#"
-                  role="button"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                >
-                  Data
-                </a>
-                <ul class="dropdown-menu">
-                  <li>
-                    <a class="dropdown-item" href="{{url_for('instruction') }}"
-                      >System Instructions</a
-                    >
-                  </li>
-                  <li>
-                    <a class="dropdown-item" href="{{url_for('scraper') }}"
-                      >Webscraping tool</a
-                    >
-                  </li>
-                  <li>
-                    <hr class="dropdown-divider" />
-                  </li>
-                  <li>
-                    <a
-                      class="dropdown-item"
-                      href="{{url_for('chroma_ingest') }}"
-                      >Chroma: Ingest</a
-                    >
-                  </li>
-                  <li>
-                    <a
-                      class="dropdown-item"
-                      href="{{url_for('chunking_strategies') }}"
-                      >Chunking Strategies</a
-                    >
-                  </li>
-                  <li>
-                    <a
-                      class="dropdown-item"
-                      href="{{url_for('chroma_view_database') }}"
-                      >Chroma: view database</a
-                    >
-                  </li>
-                </ul>
-              </li>
-              <li class="nav-item dropdown">
-                <a
-                  class="nav-link dropdown-toggle"
-                  href="#"
-                  role="button"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                >
-                  Legacy UI
-                </a>
-                <ul class="dropdown-menu">
-                  <li>
-                    <a class="dropdown-item" href="{{url_for('setup') }}"
-                      >Set Gcp</a
-                    >
-                  </li>
-                  <li>
-                    <a class="dropdown-item" href="{{url_for('chatbot') }}"
-                      >Chatbot</a
-                    >
-                  </li>
-                  <li>
-                    <hr class="dropdown-divider" />
-                  </li>
-                  <li>
-                    <a
-                      class="dropdown-item"
-                      href="{{url_for('setup_stabilityai') }}"
-                      >Setup Stability AI</a
-                    >
-                  </li>
-                  <li>
-                    <a
-                      class="dropdown-item"
-                      href="{{url_for('imgvar_stabilityai') }}"
-                      >Variation Stability_ai</a
-                    >
-                  </li>
-                </ul>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link disabled">Disabled</a>
-              </li>
-            </ul>
-            <form class="d-flex" role="search">
-              <!-- there is no need to allow "Enter" in this input -->
-              <input
-                class="form-control me-2"
-                name="keyword"
-                type="text"
-                placeholder="Search"
-                aria-label="Search"
-                onkeydown="return (event.keyCode!=13);"
-              />
-            </form>
-          </div>
-        </div>
-      </nav>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="{{url_for('index') }}">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{url_for('chatbot_v2') }}">Chatbot v2</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Ollama
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item" href="{{url_for('chatbot_ollama') }}">Ollama Chatbot</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{url_for('ollama_chat_history') }}">Ollama Chatbot
+                                        History</a>
+                                </li>
+                                <hr class="dropdown-divider" />
+                                <li>
+                                    <a class="dropdown-item" href="{{url_for('ollama_function_call') }}">Ollama Function
+                                        Call</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{url_for('ollama_function_call_v2') }}">Ollama
+                                        Function Call v2</a>
+                                </li>
+                                <hr class="dropdown-divider" />
+                                <li>
+                                    <a class="dropdown-item" href="{{url_for('embedding_ollama') }}">Ollama
+                                        Embeddings</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{url_for('load_embedding_ollama') }}">Loaded
+                                        embeddings</a>
+                                </li>
+                                <li>
+                                    <hr class="dropdown-divider" />
+                                </li>
+                                <li><a class="dropdown-item" href="#">tba</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Images
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item" href="{{url_for('chatbotimage') }}">DALL·E</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{url_for('imagevariation') }}">Variation
+                                        dall-e-2</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{url_for('imagevariation_v2') }}">Variation dall-e-2
+                                        V2</a>
+                                </li>
+                                <hr class="dropdown-divider" />
+                                <li>
+                                    <a class="dropdown-item" href="{{url_for('imgvar_stabilityai_v2') }}">Variation
+                                        Stability_ai v2</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{url_for('vision_ollama') }}">LLaVA vision
+                                        encoder</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{url_for('vision_ollama_v2') }}">LLaVA vision
+                                        encoder V2</a>
+                                </li>
+                                <li>
+                                    <hr class="dropdown-divider" />
+                                </li>
+                                <li><a class="dropdown-item" href="{{url_for('img_generation') }}">Image Generation</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Video
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item" href="{{url_for('imageToVideo_stabilityai') }}">Image to
+                                        Video (beta)</a>
+                                </li>
+                                <li>
+                                    <hr class="dropdown-divider" />
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{url_for('video_gallery') }}">Video Gallery</a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Setup Engines
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item" href="{{url_for('setup_v2') }}">Setup Gpt v2</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{url_for('setup_stabilityaiv2') }}">Setup Stability
+                                        AI v2</a>
+                                </li>
+                                <li>
+                                    <hr class="dropdown-divider" />
+                                </li>
+                                <li><a class="dropdown-item" href="#">tba</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Data
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item" href="{{url_for('instruction') }}">System Instructions</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{url_for('scraper') }}">Webscraping tool</a>
+                                </li>
+                                <li>
+                                    <hr class="dropdown-divider" />
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{url_for('chroma_ingest') }}">Chroma: Ingest</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{url_for('chunking_strategies') }}">Chunking
+                                        Strategies</a>
+                                </li>
+                                <hr class="dropdown-divider" />
+                                <li>
+                                    <a class="dropdown-item" href="{{url_for('chroma_view_database') }}">Chroma: view
+                                        database</a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Legacy UI
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item" href="{{url_for('setup') }}">Set Gcp</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{url_for('chatbot') }}">Chatbot</a>
+                                </li>
+                                <li>
+                                    <hr class="dropdown-divider" />
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{url_for('setup_stabilityai') }}">Setup Stability
+                                        AI</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{url_for('imgvar_stabilityai') }}">Variation
+                                        Stability_ai</a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link disabled">Disabled</a>
+                        </li>
+                    </ul>
+                    <form class="d-flex" role="search">
+                        <!-- there is no need to allow "Enter" in this input -->
+                        <input class="form-control me-2" name="keyword" type="text" placeholder="Search"
+                            aria-label="Search" onkeydown="return (event.keyCode!=13);" />
+                    </form>
+                </div>
+            </div>
+        </nav>
     </header>
     <!-- Begin page content -->
     <main class="flex-shrink-0 context">
-      {% block content %} {% endblock %}
+        {% block content %} {% endblock %}
     </main>
-    <script
-      src="https://code.jquery.com/jquery-3.6.3.min.js"
-      integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU="
-      crossorigin="anonymous"
-    ></script>
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN"
-      crossorigin="anonymous"
-    ></script>
+    <script src="https://code.jquery.com/jquery-3.6.3.min.js"
+        integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous">
+    </script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.5/js/select2.js"></script>
-    <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js"
-      integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww=="
-      crossorigin="anonymous"
-      referrerpolicy="no-referrer"
-    ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js"
+        integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script>
-      $(function () {
-        $('[data-toggle="tooltip"]').tooltip();
-      });
+        $(function() {
+            $('[data-toggle="tooltip"]').tooltip();
+        });
     </script>
     <script>
-      // Create an instance of mark.js and pass an argument containing
-      // the DOM object of the context (where to search for matches)
-      var markInstance = new Mark(document.querySelector(".context"));
-      // Cache DOM elements
-      var keywordInput = document.querySelector("input[name='keyword']");
-      var optionInputs = document.querySelectorAll("input[name='opt[]']");
+        // Create an instance of mark.js and pass an argument containing
+        // the DOM object of the context (where to search for matches)
+        var markInstance = new Mark(document.querySelector(".context"));
+        // Cache DOM elements
+        var keywordInput = document.querySelector("input[name='keyword']");
+        var optionInputs = document.querySelectorAll("input[name='opt[]']");
 
-      function performMark() {
-        // Read the keyword
-        var keyword = keywordInput.value;
+        function performMark() {
+            // Read the keyword
+            var keyword = keywordInput.value;
 
-        // Determine selected options
-        var options = {};
-        [].forEach.call(optionInputs, function (opt) {
-          options[opt.value] = opt.checked;
-        });
+            // Determine selected options
+            var options = {};
+            [].forEach.call(optionInputs, function(opt) {
+                options[opt.value] = opt.checked;
+            });
 
-        // Remove previous marked elements and mark
-        // the new keyword inside the context
-        markInstance.unmark({
-          done: function () {
-            markInstance.mark(keyword, options);
-          },
-        });
-      }
-
-      // Listen to input and option changes
-      keywordInput.addEventListener("input", performMark);
-      for (var i = 0; i < optionInputs.length; i++) {
-        optionInputs[i].addEventListener("change", performMark);
-      }
-    </script>
-    <script>
-      function custom_template(obj) {
-        var data = $(obj.element).data();
-        var text = $(obj.element).text();
-        if (data && data["img_src"]) {
-          img_src = data["img_src"];
-          template = $(
-            '<div><img src="' +
-              img_src +
-              '" style="width:10%;height:10%;"/><p style="font-weight: 700;font-size:14pt;text-align:center;">' +
-              text +
-              "</p></div>"
-          );
-          return template;
+            // Remove previous marked elements and mark
+            // the new keyword inside the context
+            markInstance.unmark({
+                done: function() {
+                    markInstance.mark(keyword, options);
+                },
+            });
         }
-      }
-      var options = {
-        templateSelection: custom_template,
-        templateResult: custom_template,
-      };
-      $("#id_select2_example").select2(options);
-      $(".select2-container--default .select2-selection--single").css({
-        height: "200px",
-      });
+
+        // Listen to input and option changes
+        keywordInput.addEventListener("input", performMark);
+        for (var i = 0; i < optionInputs.length; i++) {
+            optionInputs[i].addEventListener("change", performMark);
+        }
     </script>
-  </body>
+    <script>
+        function custom_template(obj) {
+            var data = $(obj.element).data();
+            var text = $(obj.element).text();
+            if (data && data["img_src"]) {
+                img_src = data["img_src"];
+                template = $(
+                    '<div><img src="' +
+                    img_src +
+                    '" style="width:10%;height:10%;"/><p style="font-weight: 700;font-size:14pt;text-align:center;">' +
+                    text +
+                    "</p></div>"
+                );
+                return template;
+            }
+        }
+        var options = {
+            templateSelection: custom_template,
+            templateResult: custom_template,
+        };
+        $("#id_select2_example").select2(options);
+        $(".select2-container--default .select2-selection--single").css({
+            height: "200px",
+        });
+    </script>
+</body>
+
 </html>
