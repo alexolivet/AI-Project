@@ -1274,16 +1274,6 @@ def ollama_function_call_v2():
                 response = vision_with_ollama(blobUpload, user_input)
                 contentToAjax = response
                 print("image response")
-                # # Separate the metadata from the image data
-                # head, data = blobUpload.split(",", 1)
-                # # Get the file extension (gif, jpeg, png)
-                # file_ext = head.split(";")[0].split("/")[1]
-                # # Decode the image data
-                # plain_data = base64.b64decode(data)
-                # # Write the image to a file
-                # with open("image." + file_ext, "wb") as f:
-                #     f.write(plain_data)
-                #     print(f.name)
             else:
                 response = chat_with_ollama(user_input)
                 logging.info(f"response from function call: {response}")
@@ -2077,6 +2067,7 @@ def img_generation():
                 },
             )
             if response.status_code == 200:
+                logging.info(f"Response status {response.status_code}")
                 with open("static/img_generation/img_generation.png", "wb") as file:
                     file.write(response.content)
                     content = "img_generation.png"
